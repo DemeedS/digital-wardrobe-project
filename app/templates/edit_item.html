@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h2 class="mb-4">Edit Item</h2>
+        <form method="POST">
+            <div class="mb-3">
+                <label>Type</label>
+                <select name="type" class="form-control" required>
+                    <option value="">Select type</option>
+                    {% for option in ['Shirt', 'Pants', 'Socks', 'Hat', 'Shoes', 'Jacket', 'Dress', 'Other'] %}
+                        <option {% if item.type == option %}selected{% endif %}>{{ option }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label>Color</label>
+                <input type="text" name="color" class="form-control" value="{{ item.color }}" required>
+            </div>
+            <div class="mb-3">
+                <label>Size</label>
+                <select name="size" class="form-control" required>
+                    {% for option in ['XS', 'S', 'M', 'L', 'XL', 'XXL'] %}
+                        <option {% if item.size == option %}selected{% endif %}>{{ option }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label>Material</label>
+                <input type="text" name="material" class="form-control" value="{{ item.material }}" required>
+            </div>
+            <div class="mb-3">
+                <label>Brand</label>
+                <input type="text" name="brand" class="form-control" value="{{ item.brand }}" required>
+            </div>
+            <div class="mb-3">
+                <label>Season</label>
+                <select name="season" class="form-control" required>
+                    {% for option in ['Spring', 'Summer', 'Fall', 'Winter'] %}
+                        <option {% if item.season == option %}selected{% endif %}>{{ option }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" name="favorite" class="form-check-input" id="favorite" {% if item.favorite %}checked{% endif %}>
+                <label class="form-check-label" for="favorite">Mark as Favorite</label>
+            </div>
+            <button type="submit" class="btn btn-dark w-100">Save Changes</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

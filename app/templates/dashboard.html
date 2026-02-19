@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="mb-4">My Wardrobe</h2>
+{% if items %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Color</th>
+                <th>Size</th>
+                <th>Material</th>
+                <th>Brand</th>
+                <th>Season</th>
+                <th>Favorite</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.type }}</td>
+                <td>{{ item.color }}</td>
+                <td>{{ item.size }}</td>
+                <td>{{ item.material }}</td>
+                <td>{{ item.brand }}</td>
+                <td>{{ item.season }}</td>
+                <td>{{ '⭐' if item.favorite else '' }}</td>
+                <td>
+                    <a href="{{ url_for('wardrobe.edit_item', item_id=item.id) }}" class="btn btn-sm btn-secondary">Edit</a>
+                    <form action="{{ url_for('wardrobe.delete_item', item_id=item.id) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No items yet. <a href="{{ url_for('wardrobe.add_item') }}">Add your first item.</a></p>
+{% endif %}
+{% endblock %}
