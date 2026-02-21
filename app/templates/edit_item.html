@@ -9,7 +9,7 @@
                 <select name="type" class="form-control" required>
                     <option value="">Select type</option>
                     {% for option in ['Shirt', 'Pants', 'Socks', 'Hat', 'Shoes', 'Jacket', 'Dress', 'Other'] %}
-                        <option {% if item.type == option %}selected{% endif %}>{{ option }}</option>
+                    <option {% if item.type == option %}selected{% endif %}>{{ option }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -21,13 +21,24 @@
                 <label>Size</label>
                 <select name="size" class="form-control" required>
                     {% for option in ['XS', 'S', 'M', 'L', 'XL', 'XXL'] %}
-                        <option {% if item.size == option %}selected{% endif %}>{{ option }}</option>
+                    <option {% if item.size == option %}selected{% endif %}>{{ option }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="mb-3">
                 <label>Material</label>
-                <input type="text" name="material" class="form-control" value="{{ item.material }}" required>
+                {% set preset_materials = ['Cotton', 'Wool', 'Polyester', 'Leather', 'Denim', 'Silk', 'Linen', 'Nylon', 'Cashmere'] %}
+                <select name="material" id="material_select" class="form-control" required onchange="handleMaterialChange(this)">
+                    <option value="">Select material</option>
+                    {% for option in preset_materials %}
+                    <option {% if item.material == option %}selected{% endif %}>{{ option }}</option>
+                    {% endfor %}
+                    <option value="Other" {% if item.material not in preset_materials %}selected{% endif %}>Other</option>
+                </select>
+                <input type="text" name="material_custom" id="material_custom" class="form-control mt-2"
+                    placeholder="Enter material"
+                    value="{{ item.material if item.material not in ['Cotton', 'Wool', 'Polyester', 'Leather', 'Denim', 'Silk', 'Linen', 'Nylon', 'Cashmere'] else '' }}"
+                    style="display: {{ 'block' if item.material not in ['Cotton', 'Wool', 'Polyester', 'Leather', 'Denim', 'Silk', 'Linen', 'Nylon', 'Cashmere'] else 'none' }};">
             </div>
             <div class="mb-3">
                 <label>Brand</label>
@@ -37,7 +48,7 @@
                 <label>Season</label>
                 <select name="season" class="form-control" required>
                     {% for option in ['Spring', 'Summer', 'Fall', 'Winter'] %}
-                        <option {% if item.season == option %}selected{% endif %}>{{ option }}</option>
+                    <option {% if item.season == option %}selected{% endif %}>{{ option }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -49,4 +60,17 @@
         </form>
     </div>
 </div>
+
+<script>
+function handleMaterialChange(select) {
+    const customInput = document.getElementById('material_custom');
+    if (select.value === 'Other') {
+        customInput.style.display = 'block';
+        customInput.required = true;
+    } else {
+        customInput.style.display = 'none';
+        customInput.required = false;
+    }
+}
+</script>
 {% endblock %}

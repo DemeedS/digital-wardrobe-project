@@ -20,7 +20,7 @@
             </div>
             <div class="mb-3">
                 <label>Color</label>
-                <input type="text" name="color" class="form-control" required>
+                <input type="text" name="color" class="form-control" placeholder="e.g. Blue, Red, Black" required>
             </div>
             <div class="mb-3">
                 <label>Size</label>
@@ -36,7 +36,20 @@
             </div>
             <div class="mb-3">
                 <label>Material</label>
-                <input type="text" name="material" class="form-control" required>
+                <select name="material" id="material_select" class="form-control" required onchange="handleMaterialChange(this)">
+                    <option value="">Select material</option>
+                    <option>Cotton</option>
+                    <option>Wool</option>
+                    <option>Polyester</option>
+                    <option>Leather</option>
+                    <option>Denim</option>
+                    <option>Silk</option>
+                    <option>Linen</option>
+                    <option>Nylon</option>
+                    <option>Cashmere</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="text" name="material_custom" id="material_custom" class="form-control mt-2" placeholder="Enter material" style="display:none;">
             </div>
             <div class="mb-3">
                 <label>Brand</label>
@@ -60,4 +73,17 @@
         </form>
     </div>
 </div>
+
+<script>
+function handleMaterialChange(select) {
+    const customInput = document.getElementById('material_custom');
+    if (select.value === 'Other') {
+        customInput.style.display = 'block';
+        customInput.required = true;
+    } else {
+        customInput.style.display = 'none';
+        customInput.required = false;
+    }
+}
+</script>
 {% endblock %}

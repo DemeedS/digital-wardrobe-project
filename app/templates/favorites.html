@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="mb-4">My Favorites ⭐</h2>
+
+{% if items %}
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Type</th>
+            <th>Color</th>
+            <th>Size</th>
+            <th>Material</th>
+            <th>Brand</th>
+            <th>Season</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.type }}</td>
+            <td>{{ item.color }}</td>
+            <td>{{ item.size }}</td>
+            <td>{{ item.material }}</td>
+            <td>{{ item.brand }}</td>
+            <td>{{ item.season }}</td>
+            <td>
+                <a href="{{ url_for('wardrobe.edit_item', item_id=item.id) }}" class="btn btn-sm btn-secondary">Edit</a>
+                <form action="{{ url_for('wardrobe.delete_item', item_id=item.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                </form>
+                <form action="{{ url_for('wardrobe.toggle_favorite', item_id=item.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-sm btn-warning">★ Unfavorite</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>You have no favorites yet. Go to your <a href="{{ url_for('wardrobe.dashboard') }}">wardrobe</a> and star some items.</p>
+{% endif %}
+{% endblock %}
