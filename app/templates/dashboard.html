@@ -1,41 +1,108 @@
 {% extends 'base.html' %}
 {% block content %}
 <h2 class="mb-4">My Wardrobe</h2>
+
+<!-- FILTER FORM -->
+<form method="GET" action="{{ url_for('wardrobe.dashboard') }}" class="mb-4">
+    <div class="row g-2">
+        <div class="col">
+            <select name="type" class="form-select">
+                <option value="">All Types</option>
+                <option value="Shirt" {% if type_filter == 'Shirt' %}selected{% endif %}>Shirt</option>
+                <option value="Pants" {% if type_filter == 'Pants' %}selected{% endif %}>Pants</option>
+                <option value="Shoes" {% if type_filter == 'Shoes' %}selected{% endif %}>Shoes</option>
+                <option value="Hat" {% if type_filter == 'Hat' %}selected{% endif %}>Hat</option>
+                <option value="Jacket" {% if type_filter == 'Jacket' %}selected{% endif %}>Jacket</option>
+                <option value="Socks" {% if type_filter == 'Socks' %}selected{% endif %}>Socks</option>
+            </select>
+        </div>
+        <div class="col">
+            <select name="color" class="form-select">
+                <option value="">All Colors</option>
+                <option value="Black" {% if color_filter == 'Black' %}selected{% endif %}>Black</option>
+                <option value="White" {% if color_filter == 'White' %}selected{% endif %}>White</option>
+                <option value="Blue" {% if color_filter == 'Blue' %}selected{% endif %}>Blue</option>
+                <option value="Red" {% if color_filter == 'Red' %}selected{% endif %}>Red</option>
+                <option value="Green" {% if color_filter == 'Green' %}selected{% endif %}>Green</option>
+                <option value="Grey" {% if color_filter == 'Grey' %}selected{% endif %}>Grey</option>
+            </select>
+        </div>
+        <div class="col">
+            <select name="size" class="form-select">
+                <option value="">All Sizes</option>
+                <option value="XS" {% if size_filter == 'XS' %}selected{% endif %}>XS</option>
+                <option value="S" {% if size_filter == 'S' %}selected{% endif %}>S</option>
+                <option value="M" {% if size_filter == 'M' %}selected{% endif %}>M</option>
+                <option value="L" {% if size_filter == 'L' %}selected{% endif %}>L</option>
+                <option value="XL" {% if size_filter == 'XL' %}selected{% endif %}>XL</option>
+            </select>
+        </div>
+        <div class="col">
+            <select name="material" class="form-select">
+                <option value="">All Materials</option>
+                <option value="Cotton" {% if material_filter == 'Cotton' %}selected{% endif %}>Cotton</option>
+                <option value="Wool" {% if material_filter == 'Wool' %}selected{% endif %}>Wool</option>
+                <option value="Polyester" {% if material_filter == 'Polyester' %}selected{% endif %}>Polyester</option>
+                <option value="Leather" {% if material_filter == 'Leather' %}selected{% endif %}>Leather</option>
+                <option value="Denim" {% if material_filter == 'Denim' %}selected{% endif %}>Denim</option>
+            </select>
+        </div>
+        <div class="col">
+            <select name="season" class="form-select">
+                <option value="">All Seasons</option>
+                <option value="Spring" {% if season_filter == 'Spring' %}selected{% endif %}>Spring</option>
+                <option value="Summer" {% if season_filter == 'Summer' %}selected{% endif %}>Summer</option>
+                <option value="Fall" {% if season_filter == 'Fall' %}selected{% endif %}>Fall</option>
+                <option value="Winter" {% if season_filter == 'Winter' %}selected{% endif %}>Winter</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Filter</button>
+            <a href="{{ url_for('wardrobe.dashboard') }}" class="btn btn-outline-secondary">Clear</a>
+        </div>
+    </div>
+</form>
+
 {% if items %}
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Type</th>
-                <th>Color</th>
-                <th>Size</th>
-                <th>Material</th>
-                <th>Brand</th>
-                <th>Season</th>
-                <th>Favorite</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in items %}
-            <tr>
-                <td>{{ item.type }}</td>
-                <td>{{ item.color }}</td>
-                <td>{{ item.size }}</td>
-                <td>{{ item.material }}</td>
-                <td>{{ item.brand }}</td>
-                <td>{{ item.season }}</td>
-                <td>{{ '⭐' if item.favorite else '' }}</td>
-                <td>
-                    <a href="{{ url_for('wardrobe.edit_item', item_id=item.id) }}" class="btn btn-sm btn-secondary">Edit</a>
-                    <form action="{{ url_for('wardrobe.delete_item', item_id=item.id) }}" method="POST" style="display:inline;">
-                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Type</th>
+            <th>Color</th>
+            <th>Size</th>
+            <th>Material</th>
+            <th>Brand</th>
+            <th>Season</th>
+            <th>Favorite</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.type }}</td>
+            <td>{{ item.color }}</td>
+            <td>{{ item.size }}</td>
+            <td>{{ item.material }}</td>
+            <td>{{ item.brand }}</td>
+            <td>{{ item.season }}</td>
+            <td>{{ '⭐' if item.favorite else '' }}</td>
+            <td>
+                <a href="{{ url_for('wardrobe.edit_item', item_id=item.id) }}" class="btn btn-sm btn-secondary">Edit</a>
+                <form action="{{ url_for('wardrobe.delete_item', item_id=item.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                </form>
+                <form action="{{ url_for('wardrobe.toggle_favorite', item_id=item.id) }}" method="POST" style="display:inline;">
+                    <button type="submit" class="btn btn-sm btn-warning">
+                        {{ '★ Unfavorite' if item.favorite else '☆ Favorite' }}
+                    </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% else %}
-    <p>No items yet. <a href="{{ url_for('wardrobe.add_item') }}">Add your first item.</a></p>
+<p>No items found. <a href="{{ url_for('wardrobe.add_item') }}">Add your first item.</a></p>
 {% endif %}
 {% endblock %}

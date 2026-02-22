@@ -1,10 +1,13 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
-from flask_login import login_user, logout_user, login_required, current_user
-from app import db
+# user authentication routes for registration, login, and logout
+
+from flask import Blueprint, render_template, redirect, url_for, flash, request # Import request for handling form data
+from flask_login import login_user, logout_user, login_required, current_user # Import current_user to check authentication status
+from app import db # Import db to interact with the database
 from app.models import User
 
 auth = Blueprint('auth', __name__)
 
+# Route for user registration
 @auth.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
