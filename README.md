@@ -51,3 +51,20 @@ Notes
 License
 - See project root for licensing details (if any).
 
+
+ Windows activation instructions.
+
+The virtual environment activation command only covers Unix/Linux/macOS. Windows users need different commands. Consider adding a note for Windows:
+
+Unix/Linux/macOS: source .venv/bin/activate
+Windows CMD: .venv\Scripts\activate
+Windows PowerShell: .venv\Scripts\Activate.ps1
+-	 python -m venv .venv
+-	 source .venv/bin/activate
++	 python -m venv .venv
++	 # On Unix/Linux/macOS:
++	 source .venv/bin/activate
++	 # On Windows (CMD):
++	 .venv\Scripts\activate
++	 # On Windows (PowerShell):
++	 .venv\Scripts\Activate.ps1
