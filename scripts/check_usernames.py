@@ -32,7 +32,7 @@ def main():
 
     print(f"Found {len(long_users)} usernames longer than {args.limit}:")
     for u in long_users:
-        print(f"- id={u.id} username='{u.username}' length={len(u.username)})")
+        print(f"- id={u.id} username='{u.username}' length={len(u.username)}")
     return 1
 
 
