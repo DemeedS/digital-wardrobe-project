@@ -1,11 +1,13 @@
-#  settings, database, login system, route departments putten togehter.
+#  settings, database, login system, route departments put together.
 # import frameworks and libraries
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
+from flask_wtf import CSRFProtect
 
 db = SQLAlchemy()
 login_manager = LoginManager()
+csrf = CSRFProtect()
 
 # Flask application factory
 def create_app(): 
@@ -16,6 +18,7 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
+    csrf.init_app(app)
 
 # Register blueprints
     from app.routes.auth import auth

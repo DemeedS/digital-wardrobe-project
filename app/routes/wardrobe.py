@@ -30,10 +30,10 @@ def dashboard():
     items = query.all()
 
     user_colors = db.session.query(ClothingItem.color).filter_by(user_id=current_user.id).distinct().all()
-    user_colors = sorted([c[0] for c in user_colors])
+    user_colors = sorted([c[0] for c in user_colors if c[0]])
 
     user_materials = db.session.query(ClothingItem.material).filter_by(user_id=current_user.id).distinct().all()
-    user_materials = [m[0] for m in user_materials]
+    user_materials = sorted([m[0] for m in user_materials if m[0]])
 
     return render_template('dashboard.html', items=items,
     type_filter=type_filter,
