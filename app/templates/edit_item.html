@@ -37,8 +37,9 @@
                 </select>
                 <input type="text" name="material_custom" id="material_custom" class="form-control mt-2"
                     placeholder="Enter material"
-                    value="{{ item.material if item.material not in ['Cotton', 'Wool', 'Polyester', 'Leather', 'Denim', 'Silk', 'Linen', 'Nylon', 'Cashmere'] else '' }}"
-                    style="display: {{ 'block' if item.material not in ['Cotton', 'Wool', 'Polyester', 'Leather', 'Denim', 'Silk', 'Linen', 'Nylon', 'Cashmere'] else 'none' }};">
+                    value="{{ item.material if item.material not in preset_materials else '' }}"
+                    style="display: {{ 'block' if item.material not in preset_materials else 'none' }};"
+                    {% if item.material not in preset_materials %}required{% endif %}>
             </div>
             <div class="mb-3">
                 <label>Brand</label>
