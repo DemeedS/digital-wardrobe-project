@@ -4,6 +4,7 @@
     <div class="col-md-6">
         <h2 class="mb-4">Edit Item</h2>
         <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="mb-3">
                 <label>Type</label>
                 <select name="type" class="form-control" required>
