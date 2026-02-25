@@ -5,64 +5,101 @@
 <!-- FILTER FORM -->
 <form method="GET" action="{{ url_for('wardrobe.dashboard') }}" class="mb-4">
     <div class="row g-2">
+
+        <!-- TYPE FILTER -->
         <div class="col">
             <select name="type" class="form-select">
                 <option value="">All Types</option>
-                <option value="Shirt" {% if type_filter == 'Shirt' %}selected{% endif %}>Shirt</option>
-                <option value="Pants" {% if type_filter == 'Pants' %}selected{% endif %}>Pants</option>
-                <option value="Shoes" {% if type_filter == 'Shoes' %}selected{% endif %}>Shoes</option>
-                <option value="Hat" {% if type_filter == 'Hat' %}selected{% endif %}>Hat</option>
-                <option value="Jacket" {% if type_filter == 'Jacket' %}selected{% endif %}>Jacket</option>
-                <option value="Socks" {% if type_filter == 'Socks' %}selected{% endif %}>Socks</option>
+                {% set preset_types = ['Shirt', 'Pants', 'Shoes', 'Hat', 'Jacket', 'Socks', 'Dress'] %}
+                {% for t in preset_types %}
+                    <option value="{{ t }}" {% if type_filter == t %}selected{% endif %}>{{ t }}</option>
+                {% endfor %}
+                {% for t in user_types %}
+                    {% if t not in preset_types %}
+                        <option value="{{ t }}" {% if type_filter == t %}selected{% endif %}>{{ t }} (custom)</option>
+                    {% endif %}
+                {% endfor %}
             </select>
         </div>
+
+        <!-- COLOR FILTER -->
         <div class="col">
-            <select name="color" class="form-select">
-                <option value="">All Colors</option>
-                <option value="Black" {% if color_filter == 'Black' %}selected{% endif %}>Black</option>
-                <option value="White" {% if color_filter == 'White' %}selected{% endif %}>White</option>
-                <option value="Blue" {% if color_filter == 'Blue' %}selected{% endif %}>Blue</option>
-                <option value="Red" {% if color_filter == 'Red' %}selected{% endif %}>Red</option>
-                <option value="Green" {% if color_filter == 'Green' %}selected{% endif %}>Green</option>
-                <option value="Grey" {% if color_filter == 'Grey' %}selected{% endif %}>Grey</option>
-            </select>
+            <input type="text" name="color" class="form-control" placeholder="Filter by color..."
+                value="{{ color_filter or '' }}" list="color-options">
+            <datalist id="color-options">
+                {% set preset_colors = ['Black', 'White', 'Blue', 'Red', 'Green', 'Grey', 'Brown', 'Beige', 'Navy', 'Pink'] %}
+                {% for c in preset_colors %}
+                    <option value="{{ c }}">
+                {% endfor %}
+                {% for c in user_colors %}
+                    {% if c not in preset_colors %}
+                        <option value="{{ c }}">
+                    {% endif %}
+                {% endfor %}
+            </datalist>
         </div>
+
+        <!-- SIZE FILTER -->
         <div class="col">
             <select name="size" class="form-select">
                 <option value="">All Sizes</option>
-                <option value="XS" {% if size_filter == 'XS' %}selected{% endif %}>XS</option>
-                <option value="S" {% if size_filter == 'S' %}selected{% endif %}>S</option>
-                <option value="M" {% if size_filter == 'M' %}selected{% endif %}>M</option>
-                <option value="L" {% if size_filter == 'L' %}selected{% endif %}>L</option>
-                <option value="XL" {% if size_filter == 'XL' %}selected{% endif %}>XL</option>
+                {% for s in ['XS', 'S', 'M', 'L', 'XL', 'XXL'] %}
+                    <option value="{{ s }}" {% if size_filter == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
             </select>
         </div>
+
+        <!-- MATERIAL FILTER -->
         <div class="col">
-            <select name="material" class="form-select">
-                <option value="">All Materials</option>
-                <option value="Cotton" {% if material_filter == 'Cotton' %}selected{% endif %}>Cotton</option>
-                <option value="Wool" {% if material_filter == 'Wool' %}selected{% endif %}>Wool</option>
-                <option value="Polyester" {% if material_filter == 'Polyester' %}selected{% endif %}>Polyester</option>
-                <option value="Leather" {% if material_filter == 'Leather' %}selected{% endif %}>Leather</option>
-                <option value="Denim" {% if material_filter == 'Denim' %}selected{% endif %}>Denim</option>
-            </select>
+            <input type="text" name="material" class="form-control" placeholder="Filter by material..."
+                value="{{ material_filter or '' }}" list="material-options">
+            <datalist id="material-options">
+                {% set preset_materials = ['Cotton', 'Wool', 'Polyester', 'Leather', 'Denim', 'Silk', 'Linen', 'Nylon', 'Cashmere'] %}
+                {% for m in preset_materials %}
+                    <option value="{{ m }}">
+                {% endfor %}
+                {% for m in user_materials %}
+                    {% if m not in preset_materials %}
+                        <option value="{{ m }}">
+                    {% endif %}
+                {% endfor %}
+            </datalist>
         </div>
+
+        <!-- SEASON FILTER - multi select dropdown -->
         <div class="col">
-            <select name="season" class="form-select">
-                <option value="">All Seasons</option>
-                <option value="Spring" {% if season_filter == 'Spring' %}selected{% endif %}>Spring</option>
-                <option value="Summer" {% if season_filter == 'Summer' %}selected{% endif %}>Summer</option>
-                <option value="Fall" {% if season_filter == 'Fall' %}selected{% endif %}>Fall</option>
-                <option value="Winter" {% if season_filter == 'Winter' %}selected{% endif %}>Winter</option>
+            <select name="season" class="form-select" multiple size="4">
+                {% set preset_seasons = ['Spring', 'Summer', 'Fall', 'Winter'] %}
+                {% for s in preset_seasons %}
+                    <option value="{{ s }}" {% if s in (season_filters or []) %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+                {% for s in user_seasons %}
+                    {% if s not in preset_seasons %}
+                        <option value="{{ s }}" {% if s in (season_filters or []) %}selected{% endif %}>{{ s }} (custom)</option>
+                    {% endif %}
+                {% endfor %}
             </select>
+            <small class="text-muted">Hold Cmd/Ctrl to select multiple</small>
         </div>
-        <div class="col-auto">
+
+        <!-- FAVORITE FILTER -->
+        <div class="col-auto d-flex align-items-center">
+            <div class="form-check">
+                <input type="checkbox" name="favorite" value="1" class="form-check-input" id="favorite_filter"
+                    {% if favorite_filter %}checked{% endif %}>
+                <label class="form-check-label" for="favorite_filter">⭐ Favorites only</label>
+            </div>
+        </div>
+
+        <div class="col-auto d-flex align-items-center gap-2">
             <button type="submit" class="btn btn-primary">Filter</button>
             <a href="{{ url_for('wardrobe.dashboard') }}" class="btn btn-outline-secondary">Clear</a>
         </div>
+
     </div>
 </form>
 
+<!-- ITEMS TABLE -->
 {% if items %}
 <table class="table table-striped">
     <thead>
@@ -107,4 +144,5 @@
 {% else %}
 <p>No items found. <a href="{{ url_for('wardrobe.add_item') }}">Add your first item.</a></p>
 {% endif %}
+
 {% endblock %}

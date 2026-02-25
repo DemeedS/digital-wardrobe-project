@@ -1,88 +1,126 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-6">
-        <h2 class="mb-4">Add Item</h2>
-        <form method="POST">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">            <div class="mb-3">
-                <label>Type</label>
-                <select name="type" class="form-control" required>
-                    <option value="">Select type</option>
-                    <option>Shirt</option>
-                    <option>Pants</option>
-                    <option>Socks</option>
-                    <option>Hat</option>
-                    <option>Shoes</option>
-                    <option>Jacket</option>
-                    <option>Dress</option>
-                    <option>Other</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label>Color</label>
-                <input type="text" name="color" class="form-control" placeholder="e.g. Blue, Red, Black" required>
-            </div>
-            <div class="mb-3">
-                <label>Size</label>
-                <select name="size" class="form-control" required>
-                    <option value="">Select size</option>
-                    <option>XS</option>
-                    <option>S</option>
-                    <option>M</option>
-                    <option>L</option>
-                    <option>XL</option>
-                    <option>XXL</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label>Material</label>
-                <select name="material" id="material_select" class="form-control" required onchange="handleMaterialChange(this)">
-                    <option value="">Select material</option>
-                    <option>Cotton</option>
-                    <option>Wool</option>
-                    <option>Polyester</option>
-                    <option>Leather</option>
-                    <option>Denim</option>
-                    <option>Silk</option>
-                    <option>Linen</option>
-                    <option>Nylon</option>
-                    <option>Cashmere</option>
-                    <option value="Other">Other</option>
-                </select>
-                <input type="text" name="material_custom" id="material_custom" class="form-control mt-2" placeholder="Enter material" style="display:none;">
-            </div>
-            <div class="mb-3">
-                <label>Brand</label>
-                <input type="text" name="brand" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label>Season</label>
-                <select name="season" class="form-control" required>
-                    <option value="">Select season</option>
-                    <option>Spring</option>
-                    <option>Summer</option>
-                    <option>Fall</option>
-                    <option>Winter</option>
-                </select>
-            </div>
-            <div class="mb-3 form-check">
-                <input type="checkbox" name="favorite" class="form-check-input" id="favorite">
-                <label class="form-check-label" for="favorite">Mark as Favorite</label>
-            </div>
-            <button type="submit" class="btn btn-dark w-100">Add Item</button>
-        </form>
+<div class="col-md-6">
+<h2 class="mb-4">Add Item</h2>
+<form method="POST">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <!-- TYPE -->
+    <div class="mb-3">
+        <label>Type</label>
+        <select name="type" id="type_select" class="form-control" required onchange="handleOtherChange('type_select','type_custom')">
+            <option value="">Select type</option>
+            <option>Shirt</option>
+            <option>Pants</option>
+            <option>Socks</option>
+            <option>Hat</option>
+            <option>Shoes</option>
+            <option>Jacket</option>
+            <option>Dress</option>
+            <option value="Other">Other</option>
+        </select>
+        <input type="text" name="type_custom" id="type_custom" class="form-control mt-2" placeholder="Enter type" style="display:none;">
     </div>
+
+    <!-- COLOR -->
+    <div class="mb-3">
+        <label>Color</label>
+        <select name="color" id="color_select" class="form-control" required onchange="handleOtherChange('color_select','color_custom')">
+            <option value="">Select color</option>
+            <option>Black</option>
+            <option>White</option>
+            <option>Blue</option>
+            <option>Red</option>
+            <option>Green</option>
+            <option>Grey</option>
+            <option>Brown</option>
+            <option>Beige</option>
+            <option>Navy</option>
+            <option>Pink</option>
+            <option value="Other">Other</option>
+        </select>
+        <input type="text" name="color_custom" id="color_custom" class="form-control mt-2" placeholder="Enter color" style="display:none;">
+    </div>
+
+    <!-- SIZE -->
+    <div class="mb-3">
+        <label>Size</label>
+        <select name="size" class="form-control" required>
+            <option value="">Select size</option>
+            <option>XS</option>
+            <option>S</option>
+            <option>M</option>
+            <option>L</option>
+            <option>XL</option>
+            <option>XXL</option>
+        </select>
+    </div>
+
+    <!-- MATERIAL -->
+    <div class="mb-3">
+        <label>Material</label>
+        <select name="material" id="material_select" class="form-control" required onchange="handleOtherChange('material_select','material_custom')">
+            <option value="">Select material</option>
+            <option>Cotton</option>
+            <option>Wool</option>
+            <option>Polyester</option>
+            <option>Leather</option>
+            <option>Denim</option>
+            <option>Silk</option>
+            <option>Linen</option>
+            <option>Nylon</option>
+            <option>Cashmere</option>
+            <option value="Other">Other</option>
+        </select>
+        <input type="text" name="material_custom" id="material_custom" class="form-control mt-2" placeholder="Enter material" style="display:none;">
+    </div>
+
+    <!-- BRAND -->
+    <div class="mb-3">
+        <label>Brand</label>
+        <input type="text" name="brand" class="form-control" required>
+    </div>
+
+    <!-- SEASON -->
+    <div class="mb-3">
+        <label>Season <small class="text-muted">(hold Cmd/Ctrl to select multiple)</small></label>
+        <select name="season" id="season_select" class="form-control" multiple onchange="handleOtherChange('season_select','season_custom')">
+            <option>Spring</option>
+            <option>Summer</option>
+            <option>Fall</option>
+            <option>Winter</option>
+            <option value="Other">Other</option>
+        </select>
+        <input type="text" name="season_custom" id="season_custom" class="form-control mt-2" placeholder="Enter season" style="display:none;">
+    </div>
+
+    <!-- FAVORITE -->
+    <div class="mb-3 form-check">
+        <input type="checkbox" name="favorite" class="form-check-input" id="favorite">
+        <label class="form-check-label" for="favorite">Mark as Favorite</label>
+    </div>
+
+    <button type="submit" class="btn btn-dark w-100">Add Item</button>
+</form>
+</div>
 </div>
 
 <script>
-function handleMaterialChange(select) {
-    const customInput = document.getElementById('material_custom');
-    if (select.value === 'Other') {
+function handleOtherChange(selectId, customId) {
+    const select = document.getElementById(selectId);
+    const customInput = document.getElementById(customId);
+    
+    // For multi-select (season)
+    const selectedValues = Array.from(select.selectedOptions).map(o => o.value);
+    
+    if (select.value === 'Other' || selectedValues.includes('Other')) {
         customInput.style.display = 'block';
         customInput.required = true;
     } else {
         customInput.style.display = 'none';
         customInput.required = false;
+        customInput.value = '';
     }
 }
 </script>

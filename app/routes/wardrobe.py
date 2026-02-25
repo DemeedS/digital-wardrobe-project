@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
+from sqlalchemy import or_
 from app import db
 from app.models import ClothingItem
 
@@ -14,36 +15,44 @@ def dashboard():
     color_filter = request.args.get('color')
     size_filter = request.args.get('size')
     material_filter = request.args.get('material')
-    season_filter = request.args.get('season')
+    season_filters = request.args.getlist('season')
+    favorite_filter = request.args.get('favorite')
 
     if type_filter:
-        query = query.filter_by(type=type_filter)
+        query = query.filter(ClothingItem.type.ilike(f'%{type_filter}%'))
     if color_filter:
-        query = query.filter_by(color=color_filter)
+        query = query.filter(ClothingItem.color.ilike(f'%{color_filter}%'))
     if size_filter:
         query = query.filter_by(size=size_filter)
     if material_filter:
-        query = query.filter_by(material=material_filter)
-    if season_filter:
-        query = query.filter_by(season=season_filter)
+        query = query.filter(ClothingItem.material.ilike(f'%{material_filter}%'))
+    if season_filters:
+        query = query.filter(or_(*[ClothingItem.season.ilike(f'%{s}%') for s in season_filters]))
+    if favorite_filter:
+        query = query.filter_by(favorite=True)
 
     items = query.all()
 
-    user_colors = db.session.query(ClothingItem.color).filter_by(user_id=current_user.id).distinct().all()
-    user_colors = sorted([c[0] for c in user_colors if c[0]])
-
-    user_materials = db.session.query(ClothingItem.material).filter_by(user_id=current_user.id).distinct().all()
-    user_materials = sorted([m[0] for m in user_materials if m[0]])
+    user_types = sorted(set(i.type for i in ClothingItem.query.filter_by(user_id=current_user.id).all() if i.type))
+    user_colors = sorted(set(i.color for i in ClothingItem.query.filter_by(user_id=current_user.id).all() if i.color))
+    user_materials = sorted(set(i.material for i in ClothingItem.query.filter_by(user_id=current_user.id).all() if i.material))
+    user_seasons = sorted(set(
+        s.strip() for i in ClothingItem.query.filter_by(user_id=current_user.id).all()
+        for s in i.season.split(',') if s.strip()
+    ))
 
     return render_template('dashboard.html', items=items,
-    type_filter=type_filter,
-    color_filter=color_filter,
-    size_filter=size_filter,
-    material_filter=material_filter,
-    season_filter=season_filter,
-    user_colors=user_colors,
-    user_materials=user_materials
-)
+        type_filter=type_filter,
+        color_filter=color_filter,
+        size_filter=size_filter,
+        material_filter=material_filter,
+        season_filters=season_filters,
+        favorite_filter=favorite_filter,
+        user_types=user_types,
+        user_colors=user_colors,
+        user_materials=user_materials,
+        user_seasons=user_seasons
+    )
 
 @wardrobe.route('/favorite/<int:item_id>', methods=['POST'])
 @login_required
@@ -66,13 +75,33 @@ def favorites():
 @login_required
 def add_item():
     if request.method == 'POST':
+        type_val = request.form.get('type')
+        if type_val == 'Other':
+            type_val = request.form.get('type_custom', '').strip().title()
+
+        color_val = request.form.get('color')
+        if color_val == 'Other':
+            color_val = request.form.get('color_custom', '').strip().title()
+
+        material_val = request.form.get('material')
+        if material_val == 'Other':
+            material_val = request.form.get('material_custom', '').strip().title()
+
+        seasons = request.form.getlist('season')
+        if 'Other' in seasons:
+            seasons.remove('Other')
+            custom_season = request.form.get('season_custom', '').strip().title()
+            if custom_season:
+                seasons.append(custom_season)
+        season_val = ', '.join(seasons)
+
         item = ClothingItem(
-            type=request.form.get('type'),
-            color=request.form.get('color', '').strip().title(),
+            type=type_val,
+            color=color_val,
             size=request.form.get('size'),
-            material=request.form.get('material') if request.form.get('material') != 'Other' else request.form.get('material_custom', '').strip().title(),
+            material=material_val,
             brand=request.form.get('brand'),
-            season=request.form.get('season'),
+            season=season_val,
             favorite=True if request.form.get('favorite') else False,
             user_id=current_user.id
         )
@@ -90,12 +119,32 @@ def edit_item(item_id):
         flash('You do not have permission to edit this item.')
         return redirect(url_for('wardrobe.dashboard'))
     if request.method == 'POST':
-        item.type = request.form.get('type')
-        item.color = request.form.get('color', '').strip().title()
+        type_val = request.form.get('type')
+        if type_val == 'Other':
+            type_val = request.form.get('type_custom', '').strip().title()
+
+        color_val = request.form.get('color')
+        if color_val == 'Other':
+            color_val = request.form.get('color_custom', '').strip().title()
+
+        material_val = request.form.get('material')
+        if material_val == 'Other':
+            material_val = request.form.get('material_custom', '').strip().title()
+
+        seasons = request.form.getlist('season')
+        if 'Other' in seasons:
+            seasons.remove('Other')
+            custom_season = request.form.get('season_custom', '').strip().title()
+            if custom_season:
+                seasons.append(custom_season)
+        season_val = ', '.join(seasons)
+
+        item.type = type_val
+        item.color = color_val
         item.size = request.form.get('size')
-        item.material = request.form.get('material') if request.form.get('material') != 'Other' else request.form.get('material_custom', '').strip().title()        
+        item.material = material_val
         item.brand = request.form.get('brand')
-        item.season = request.form.get('season')
+        item.season = season_val
         item.favorite = True if request.form.get('favorite') else False
         db.session.commit()
         flash('Item updated!')
