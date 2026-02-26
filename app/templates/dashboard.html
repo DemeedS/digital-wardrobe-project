@@ -103,20 +103,52 @@
 {% if items %}
 <table class="table table-striped">
     <thead>
-        <tr>
-            <th>Type</th>
-            <th>Color</th>
-            <th>Size</th>
-            <th>Material</th>
-            <th>Brand</th>
-            <th>Season</th>
-            <th>Favorite</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
+    <tr>
+        <!-- ---- TABLE HEADERS ---- -->
+        <th>Photo</th>
+        <th>Type</th>
+        <th>Color</th>
+        <th>Size</th>
+        <th>Material</th>
+        <th>Brand</th>
+        <th>Season</th>
+        <th>Favorite</th>
+        <th>Actions</th>
+    </tr>
+</thead>
     <tbody>
         {% for item in items %}
         <tr>
+            <!-- ---- FRONT PHOTO thumbnail, tag accessible on click ---- -->
+<td>
+    {% if item.front_image_url %}
+        <a href="#" data-bs-toggle="modal" data-bs-target="#photoModal{{ item.id }}">
+            <img src="{{ item.front_image_url }}" alt="Front" style="width:50px; height:60px; object-fit:cover; border-radius:4px;">
+        </a>
+        <!-- Modal for tag photo on click -->
+        <div class="modal fade" id="photoModal{{ item.id }}" tabindex="-1">
+            <div class="modal-dialog modal-sm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h6 class="modal-title">{{ item.brand }} {{ item.type }}</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="{{ item.front_image_url }}" class="img-fluid mb-2" alt="Front photo">
+                        {% if item.tag_image_url %}
+                            <p class="text-muted small">Tag:</p>
+                            <img src="{{ item.tag_image_url }}" class="img-fluid" alt="Tag photo">
+                        {% else %}
+                            <p class="text-muted small">No tag photo uploaded</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <span class="text-muted">—</span>
+    {% endif %}
+</td>
             <td>{{ item.type }}</td>
             <td>{{ item.color }}</td>
             <td>{{ item.size }}</td>
