@@ -1,155 +1,181 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="row justify-content-center">
-<div class="col-md-6">
-<h2 class="mb-4">Add Item</h2>
+    <div class="col-md-6">
+        <h2 class="mb-4">Add Item</h2>
 
-<!-- ============================================================
+        <!-- ============================================================
      ADD ITEM FORM
      enctype="multipart/form-data" is required for file uploads
      ============================================================ -->
-<form method="POST" enctype="multipart/form-data">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <form method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <!-- TYPE -->
-    <div class="mb-3">
-        <label>Type</label>
-        <select name="type" id="type_select" class="form-control" required onchange="handleOtherChange('type_select','type_custom')">
-            <option value="">Select type</option>
-            <option>Shirt</option>
-            <option>Pants</option>
-            <option>Socks</option>
-            <option>Hat</option>
-            <option>Shoes</option>
-            <option>Jacket</option>
-            <option>Dress</option>
-            <option value="Other">Other</option>
-        </select>
-        <input type="text" name="type_custom" id="type_custom" class="form-control mt-2" placeholder="Enter type" style="display:none;">
-    </div>
+            <!-- TYPE -->
+            <div class="mb-3">
+                <label>Type</label>
+                <select name="type" id="type_select" class="form-control" required
+                    onchange="handleOtherChange('type_select','type_custom')">
+                    <option value="">Select type</option>
+                    <option>Shirt</option>
+                    <option>Pants</option>
+                    <option>Socks</option>
+                    <option>Hat</option>
+                    <option>Shoes</option>
+                    <option>Jacket</option>
+                    <option>Dress</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="text" name="type_custom" id="type_custom" class="form-control mt-2"
+                    placeholder="Enter type" style="display:none;">
+            </div>
 
-    <!-- COLOR -->
-    <div class="mb-3">
-        <label>Color</label>
-        <select name="color" id="color_select" class="form-control" required onchange="handleOtherChange('color_select','color_custom')">
-            <option value="">Select color</option>
-            <option>Black</option>
-            <option>White</option>
-            <option>Blue</option>
-            <option>Red</option>
-            <option>Green</option>
-            <option>Grey</option>
-            <option>Brown</option>
-            <option>Beige</option>
-            <option>Navy</option>
-            <option>Pink</option>
-            <option value="Other">Other</option>
-        </select>
-        <input type="text" name="color_custom" id="color_custom" class="form-control mt-2" placeholder="Enter color" style="display:none;">
-    </div>
+            <!-- COLOR -->
+            <div class="mb-3">
+                <label>Color</label>
+                <select name="color" id="color_select" class="form-control" required
+                    onchange="handleOtherChange('color_select','color_custom')">
+                    <option value="">Select color</option>
+                    <option>Black</option>
+                    <option>White</option>
+                    <option>Blue</option>
+                    <option>Red</option>
+                    <option>Green</option>
+                    <option>Grey</option>
+                    <option>Brown</option>
+                    <option>Beige</option>
+                    <option>Navy</option>
+                    <option>Pink</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="text" name="color_custom" id="color_custom" class="form-control mt-2"
+                    placeholder="Enter color" style="display:none;">
+            </div>
 
-    <!-- SIZE -->
-    <div class="mb-3">
-        <label>Size</label>
-        <select name="size" class="form-control" required>
-            <option value="">Select size</option>
-            <option>XS</option>
-            <option>S</option>
-            <option>M</option>
-            <option>L</option>
-            <option>XL</option>
-            <option>XXL</option>
-        </select>
-    </div>
+            <!-- SIZE -->
+            <div class="mb-3">
+                <label>Size</label>
+                <select name="size" class="form-control" required>
+                    <option value="">Select size</option>
+                    <option>XS</option>
+                    <option>S</option>
+                    <option>M</option>
+                    <option>L</option>
+                    <option>XL</option>
+                    <option>XXL</option>
+                </select>
+            </div>
 
-    <!-- MATERIAL -->
-    <div class="mb-3">
-        <label>Material</label>
-        <select name="material" id="material_select" class="form-control" required onchange="handleOtherChange('material_select','material_custom')">
-            <option value="">Select material</option>
-            <option>Cotton</option>
-            <option>Wool</option>
-            <option>Polyester</option>
-            <option>Leather</option>
-            <option>Denim</option>
-            <option>Silk</option>
-            <option>Linen</option>
-            <option>Nylon</option>
-            <option>Cashmere</option>
-            <option value="Other">Other</option>
-        </select>
-        <input type="text" name="material_custom" id="material_custom" class="form-control mt-2" placeholder="Enter material" style="display:none;">
-    </div>
+            <!-- MATERIAL -->
+            <div class="mb-3">
+                <label>Material</label>
+                <select name="material" id="material_select" class="form-control" required
+                    onchange="handleOtherChange('material_select','material_custom')">
+                    <option value="">Select material</option>
+                    <option>Cotton</option>
+                    <option>Wool</option>
+                    <option>Polyester</option>
+                    <option>Leather</option>
+                    <option>Denim</option>
+                    <option>Silk</option>
+                    <option>Linen</option>
+                    <option>Nylon</option>
+                    <option>Cashmere</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="text" name="material_custom" id="material_custom" class="form-control mt-2"
+                    placeholder="Enter material" style="display:none;">
+            </div>
 
-    <!-- BRAND -->
-    <div class="mb-3">
-        <label>Brand</label>
-        <input type="text" name="brand" class="form-control" required>
-    </div>
+            <!-- BRAND -->
+            <div class="mb-3">
+                <label>Brand</label>
+                <input type="text" name="brand" class="form-control" required>
+            </div>
 
-    <!-- SEASON -->
-    <div class="mb-3">
-        <label>Season <small class="text-muted">(hold Cmd/Ctrl to select multiple)</small></label>
-        <select name="season" id="season_select" class="form-control" multiple onchange="handleOtherChange('season_select','season_custom')">
-            <option>Spring</option>
-            <option>Summer</option>
-            <option>Fall</option>
-            <option>Winter</option>
-            <option value="Other">Other</option>
-        </select>
-        <input type="text" name="season_custom" id="season_custom" class="form-control mt-2" placeholder="Enter season" style="display:none;">
-    </div>
+            <!-- SEASON -->
+            <div class="mb-3">
+                <label>Season <small class="text-muted">(hold Cmd/Ctrl to select multiple)</small></label>
+                <select name="season" id="season_select" class="form-control" multiple
+                    onchange="handleOtherChange('season_select','season_custom')">
+                    <option>Spring</option>
+                    <option>Summer</option>
+                    <option>Fall</option>
+                    <option>Winter</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="text" name="season_custom" id="season_custom" class="form-control mt-2"
+                    placeholder="Enter season" style="display:none;">
+            </div>
 
-    <!-- FAVORITE -->
-    <div class="mb-3 form-check">
-        <input type="checkbox" name="favorite" class="form-check-input" id="favorite">
-        <label class="form-check-label" for="favorite">Mark as Favorite</label>
-    </div>
+            <!-- FAVORITE -->
+            <div class="mb-3 form-check">
+                <input type="checkbox" name="favorite" class="form-check-input" id="favorite">
+                <label class="form-check-label" for="favorite">Mark as Favorite</label>
+            </div>
 
-    <!-- ============================================================
+            <!-- ============================================================
          PHOTO UPLOAD SECTION (optional)
          front_image - full front view of the clothing item
          tag_image   - close-up of the label/tag for AI reading later
          ============================================================ -->
-    <hr>
-    <h5 class="mb-3">Photos <small class="text-muted">(optional)</small></h5>
+            <hr>
+            <h5 class="mb-3">Photos <small class="text-muted">(optional)</small></h5>
 
-    <!-- FRONT PHOTO -->
-    <div class="mb-3">
-        <label>Front Photo</label>
-        <input type="file" name="front_image" class="form-control" accept="image/*">
-        <small class="text-muted">Full front view of the clothing item</small>
+            <!-- FRONT PHOTO -->
+            <div class="mb-3">
+                <label>Front Photo</label>
+                <input type="file" name="front_image" id="front_image" class="form-control" accept="image/*"
+                    onchange="validateFileSize(this)">
+                <small class="text-muted">Full front view of the clothing item (max 5MB)</small>
+                <div id="front_image_error" class="text-danger small" style="display:none;">File too large. Please
+                    upload an image under 5MB.</div>
+            </div>
+
+            <!-- TAG PHOTO -->
+            <div class="mb-3">
+                <label>Tag Photo</label>
+                <input type="file" name="tag_image" id="tag_image" class="form-control" accept="image/*"
+                    onchange="validateFileSize(this)">
+                <small class="text-muted">Make sure the tag text is in focus (max 5MB)</small>
+                <div id="tag_image_error" class="text-danger small" style="display:none;">File too large. Please upload
+                    an image under 5MB.</div>
+            </div>
+
+            <button type="submit" class="btn btn-dark w-100">Add Item</button>
+        </form>
     </div>
-
-    <!-- TAG PHOTO -->
-    <div class="mb-3">
-        <label>Tag Photo</label>
-        <input type="file" name="tag_image" class="form-control" accept="image/*">
-        <small class="text-muted">Close-up of the label/tag (used for AI reading in future)</small>
-    </div>
-
-    <button type="submit" class="btn btn-dark w-100">Add Item</button>
-</form>
-</div>
 </div>
 
 <!-- ============================================================
      JAVASCRIPT - handles "Other" option visibility for dropdowns
      ============================================================ -->
 <script>
-function handleOtherChange(selectId, customId) {
-    const select = document.getElementById(selectId);
-    const customInput = document.getElementById(customId);
-    const selectedValues = Array.from(select.selectedOptions).map(o => o.value);
+    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-    if (select.value === 'Other' || selectedValues.includes('Other')) {
-        customInput.style.display = 'block';
-        customInput.required = true;
-    } else {
-        customInput.style.display = 'none';
-        customInput.required = false;
-        customInput.value = '';
+    function validateFileSize(input) {
+        const errorDiv = document.getElementById(input.id + '_error');
+        if (input.files[0] && input.files[0].size > MAX_FILE_SIZE) {
+            errorDiv.style.display = 'block';
+            input.value = '';
+        } else {
+            errorDiv.style.display = 'none';
+        }
     }
-}
+
+    function handleOtherChange(selectId, customId) {
+        const select = document.getElementById(selectId);
+        const customInput = document.getElementById(customId);
+        const selectedValues = Array.from(select.selectedOptions).map(o => o.value);
+
+        if (select.value === 'Other' || selectedValues.includes('Other')) {
+            customInput.style.display = 'block';
+            customInput.required = true;
+        } else {
+            customInput.style.display = 'none';
+            customInput.required = false;
+            customInput.value = '';
+        }
+    }
 </script>
 {% endblock %}
