@@ -4,13 +4,17 @@
 # Cloudinary image upload for front and tag photos
 # ============================================================
 
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, jsonify
 from flask_login import login_required, current_user
 from sqlalchemy import or_
 from app import db
 from app.models import ClothingItem
 import cloudinary
 import cloudinary.uploader
+import anthropic
+import base64
+import json
+from app.label_analyzer import analyze_label
 
 wardrobe = Blueprint('wardrobe', __name__)
 
@@ -52,6 +56,7 @@ def dashboard():
     color_filter = request.args.get('color')
     size_filter = request.args.get('size')
     material_filter = request.args.get('material')
+    brand_filter = request.args.get('brand')
     season_filters = request.args.getlist('season')
     favorite_filter = request.args.get('favorite')
 
@@ -63,6 +68,8 @@ def dashboard():
         query = query.filter_by(size=size_filter)
     if material_filter:
         query = query.filter(ClothingItem.material.ilike(f'%{material_filter}%'))
+    if brand_filter:
+        query = query.filter(ClothingItem.brand.ilike(f'%{brand_filter}%'))
     if season_filters:
         query = query.filter(or_(*[ClothingItem.season.ilike(f'%{s}%') for s in season_filters]))
     if favorite_filter:
@@ -75,6 +82,7 @@ def dashboard():
     user_types = sorted(set(i.type for i in all_items if i.type))
     user_colors = sorted(set(i.color for i in all_items if i.color))
     user_materials = sorted(set(i.material for i in all_items if i.material))
+    user_brands = sorted(set(i.brand for i in all_items if i.brand))
     user_seasons = sorted(set(
         s.strip() for i in all_items
         for s in i.season.split(',') if s.strip()
@@ -85,11 +93,13 @@ def dashboard():
         color_filter=color_filter,
         size_filter=size_filter,
         material_filter=material_filter,
+        brand_filter=brand_filter,
         season_filters=season_filters,
         favorite_filter=favorite_filter,
         user_types=user_types,
         user_colors=user_colors,
         user_materials=user_materials,
+        user_brands=user_brands,
         user_seasons=user_seasons
     )
 
@@ -249,3 +259,105 @@ def toggle_favorite(item_id):
 def favorites():
     items = ClothingItem.query.filter_by(user_id=current_user.id, favorite=True).all()
     return render_template('favorites.html', items=items)
+
+# ============================================================
+# SCAN TAG - Phase 2: send tag photo to Claude, extract label info
+# Returns JSON: { brand, size, material, color }
+# ============================================================
+@wardrobe.route('/scan-tag', methods=['POST'])
+@login_required
+def scan_tag():
+    api_key = current_app.config.get('ANTHROPIC_API_KEY')
+    if not api_key:
+        return jsonify({'error': 'AI scanning is not configured. Add ANTHROPIC_API_KEY to your .env file.'}), 500
+
+    tag_file = request.files.get('tag_image')
+    if not tag_file or tag_file.filename == '':
+        return jsonify({'error': 'No image provided'}), 400
+
+    image_data = base64.standard_b64encode(tag_file.read()).decode('utf-8')
+    media_type = tag_file.content_type or 'image/jpeg'
+
+    client = anthropic.Anthropic(api_key=api_key)
+
+    response = client.messages.create(
+        model='claude-opus-4-6',
+        max_tokens=256,
+        messages=[{
+            'role': 'user',
+            'content': [
+                {
+                    'type': 'image',
+                    'source': {
+                        'type': 'base64',
+                        'media_type': media_type,
+                        'data': image_data
+                    }
+                },
+                {
+                    'type': 'text',
+                    'text': (
+                        'Read this clothing label and extract the following. '
+                        'Return ONLY a JSON object with these exact keys:\n'
+                        '- "brand": the brand name (e.g. "Nike", "Zara"), or "" if not visible\n'
+                        '- "size": normalize to one of XS/S/M/L/XL/XXL if possible, '
+                        'otherwise return the raw size string, or "" if not found\n'
+                        '- "material": the main fabric/material (e.g. "Cotton", "Polyester"), or "" if not found\n'
+                        '- "color": the color if stated on the tag, or "" if not found'
+                    )
+                }
+            ]
+        }],
+        output_config={
+            'format': {
+                'type': 'json_schema',
+                'schema': {
+                    'type': 'object',
+                    'properties': {
+                        'brand':    {'type': 'string'},
+                        'size':     {'type': 'string'},
+                        'material': {'type': 'string'},
+                        'color':    {'type': 'string'}
+                    },
+                    'required': ['brand', 'size', 'material', 'color'],
+                    'additionalProperties': False
+                }
+            }
+        }
+    )
+
+    data = json.loads(response.content[0].text)
+    return jsonify(data)
+
+# ============================================================
+# ANALYZE LABEL - Phase 2 comprehensive scan
+# Claude Vision → DuckDuckGo search → FTC RN lookup
+# Returns JSON: brand, size, material, category + info-only fields
+# ============================================================
+@wardrobe.route('/analyze-label', methods=['POST'])
+@login_required
+def analyze_label_route():
+    api_key = current_app.config.get('ANTHROPIC_API_KEY')
+    if not api_key:
+        return jsonify({'error': 'AI scanning not configured. Add ANTHROPIC_API_KEY to your .env file.'}), 500
+
+    tag_file = request.files.get('tag_image')
+    if not tag_file or tag_file.filename == '':
+        return jsonify({'error': 'No image provided'}), 400
+
+    image_bytes = tag_file.read()
+    media_type  = tag_file.content_type or 'image/jpeg'
+
+    try:
+        result = analyze_label(image_bytes, media_type, api_key)
+    except anthropic.BadRequestError as e:
+        msg = str(e)
+        if 'credit balance is too low' in msg:
+            return jsonify({'error': 'Anthropic account has no credits. Add credits at console.anthropic.com → Plans & Billing.'}), 402
+        return jsonify({'error': f'API error: {msg}'}), 400
+    except anthropic.AuthenticationError:
+        return jsonify({'error': 'Invalid Anthropic API key. Check your .env file.'}), 401
+    except Exception as e:
+        return jsonify({'error': f'Unexpected error: {str(e)}'}), 500
+
+    return jsonify(result)

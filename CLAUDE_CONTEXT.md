@@ -25,6 +25,7 @@ fashion-tech startup
 - User uploads front photo + tag photo
 - Claude API reads the tag photo and auto-fills the form
   (color, material, size, brand)
+  
 - Form still shows pre-filled for user to review before saving
 
 ### Phase 3 — Visual enhancement

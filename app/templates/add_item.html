@@ -127,20 +127,67 @@
                 <label>Front Photo</label>
                 <input type="file" name="front_image" id="front_image" class="form-control" accept="image/*"
                     onchange="validateFileSize(this)">
-                <small class="text-muted">Full front view of the clothing item (max 5MB)</small>
+                <small class="text-muted">Full front view of the clothing item (max 10MB)</small>
                 <div id="front_image_error" class="text-danger small" style="display:none;">File too large. Please
-                    upload an image under 5MB.</div>
+                    upload an image under 10MB.</div>
             </div>
 
             <!-- TAG PHOTO -->
             <div class="mb-3">
                 <label>Tag Photo</label>
                 <input type="file" name="tag_image" id="tag_image" class="form-control" accept="image/*"
-                    onchange="validateFileSize(this)">
-                <small class="text-muted">Make sure the tag text is in focus (max 5MB)</small>
+                    onchange="validateFileSize(this); toggleScanButton()">
+                <small class="text-muted">Make sure the tag text is in focus (max 10MB)</small>
                 <div id="tag_image_error" class="text-danger small" style="display:none;">File too large. Please upload
-                    an image under 5MB.</div>
+                    an image under 10MB.</div>
             </div>
+
+            <!-- ============================================================
+                 SCAN LABEL BUTTON + RESULTS PANEL
+                 Shown only after user selects a tag photo.
+                 Calls /analyze-label → Claude Vision + DuckDuckGo search
+                 ============================================================ -->
+            <div id="scan_btn_wrapper" style="display:none;" class="mb-4">
+
+                <!-- Button -->
+                <button type="button" class="btn btn-outline-dark w-100" id="scan_btn" onclick="scanLabel()">
+                    ✦ Scan Label
+                </button>
+
+                <!-- Spinner + status message (shown while loading) -->
+                <div id="scan_loading" class="d-flex align-items-center gap-2 mt-2" style="display:none !important;">
+                    <div class="spinner-border spinner-border-sm" role="status">
+                        <span class="visually-hidden">Loading…</span>
+                    </div>
+                    <span class="text-muted small">Reading label with AI…</span>
+                </div>
+
+                <!-- Error message -->
+                <div id="scan_error" class="text-danger small mt-2" style="display:none;"></div>
+
+                <!-- Results panel (shown after successful scan) -->
+                <div id="scan_results" class="card border mt-3" style="display:none;">
+                    <div class="card-body pb-2">
+
+                        <!-- Header row: title + confidence badge -->
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-semibold small">Label Analysis</span>
+                            <span id="confidence_badge" class="badge"></span>
+                        </div>
+
+                        <!-- Product name + link (if found online) -->
+                        <div id="product_row" style="display:none;" class="mb-2">
+                            <a id="product_link" href="#" target="_blank" rel="noopener"
+                               class="small text-truncate d-block"></a>
+                        </div>
+
+                        <!-- Extra info not in the DB schema: shown for reference only -->
+                        <div id="extra_info" class="small text-muted" style="line-height:1.8;"></div>
+
+                    </div>
+                </div>
+
+            </div><!-- /scan_btn_wrapper -->
 
             <button type="submit" class="btn btn-dark w-100">Add Item</button>
         </form>
@@ -148,10 +195,15 @@
 </div>
 
 <!-- ============================================================
-     JAVASCRIPT - handles "Other" option visibility for dropdowns
+     JAVASCRIPT
+     handleOtherChange  — "Other" dropdown toggle (original)
+     validateFileSize   — 5 MB guard (original)
+     toggleScanButton   — show/hide Scan Label button
+     prefillSelect      — fill a select with AI value or fall back to "Other"
+     scanLabel          — main AJAX handler: calls /analyze-label, fills form
      ============================================================ -->
 <script>
-    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
     function validateFileSize(input) {
         const errorDiv = document.getElementById(input.id + '_error');
@@ -167,7 +219,6 @@
         const select = document.getElementById(selectId);
         const customInput = document.getElementById(customId);
         const selectedValues = Array.from(select.selectedOptions).map(o => o.value);
-
         if (select.value === 'Other' || selectedValues.includes('Other')) {
             customInput.style.display = 'block';
             customInput.required = true;
@@ -176,6 +227,135 @@
             customInput.required = false;
             customInput.value = '';
         }
+    }
+
+    /* Show/hide the Scan Label button when a tag photo is selected */
+    function toggleScanButton() {
+        const tagInput = document.getElementById('tag_image');
+        document.getElementById('scan_btn_wrapper').style.display =
+            tagInput.files.length > 0 ? 'block' : 'none';
+        // Hide previous results if user picks a new file
+        document.getElementById('scan_results').style.display = 'none';
+        document.getElementById('scan_error').style.display   = 'none';
+    }
+
+    /*
+     * prefillSelect — try to select an existing option (case-insensitive).
+     * If no match, select "Other" and fill the paired text input.
+     */
+    function prefillSelect(selectId, customId, value) {
+        if (!value) return;
+        const select  = document.getElementById(selectId);
+        const match   = Array.from(select.options).find(
+            o => o.value.toLowerCase() === value.toLowerCase()
+              || o.text.toLowerCase()  === value.toLowerCase()
+        );
+        if (match) {
+            select.value = match.value;
+        } else {
+            select.value = 'Other';
+            document.getElementById(customId).value = value;
+        }
+        handleOtherChange(selectId, customId);
+    }
+
+    /*
+     * prefillSize — match against size select (no "Other" option in that select).
+     * If no match, leave unchanged.
+     */
+    function prefillSize(value) {
+        if (!value) return;
+        const sel = document.querySelector('select[name="size"]');
+        const match = Array.from(sel.options).find(
+            o => o.value.toLowerCase() === value.toLowerCase()
+        );
+        if (match) sel.value = match.value;
+    }
+
+    /* Confidence badge styling */
+    const BADGE_STYLE = {
+        high:   ['bg-success', 'High confidence'],
+        medium: ['bg-warning text-dark', 'Medium confidence'],
+        low:    ['bg-secondary', 'Low confidence — label only'],
+    };
+
+    /* ============================================================
+       scanLabel — main function
+       1. POST tag photo to /analyze-label
+       2. Fill form fields with form-fillable data
+       3. Show info panel with extra label details
+       ============================================================ */
+    async function scanLabel() {
+        const tagInput = document.getElementById('tag_image');
+        if (!tagInput.files.length) return;
+
+        // UI: loading state
+        const btn     = document.getElementById('scan_btn');
+        const loading = document.getElementById('scan_loading');
+        const errDiv  = document.getElementById('scan_error');
+        const results = document.getElementById('scan_results');
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Scanning…';
+        loading.style.display = 'flex';
+        errDiv.style.display  = 'none';
+        results.style.display = 'none';
+
+        // Build multipart form with CSRF token
+        const formData = new FormData();
+        formData.append('tag_image',   tagInput.files[0]);
+        formData.append('csrf_token',  document.querySelector('input[name="csrf_token"]').value);
+
+        try {
+            const resp = await fetch('/analyze-label', { method: 'POST', body: formData });
+            const data = await resp.json();
+
+            if (data.error) {
+                errDiv.textContent    = '⚠ ' + data.error;
+                errDiv.style.display  = 'block';
+            } else {
+                // ---- Fill form-fillable fields ----
+                if (data.brand)    document.querySelector('input[name="brand"]').value = data.brand;
+                if (data.size)     prefillSize(data.size);
+                if (data.material) prefillSelect('material_select', 'material_custom', data.material);
+                if (data.color)    prefillSelect('color_select',    'color_custom',    data.color);
+                if (data.category) prefillSelect('type_select',     'type_custom',     data.category);
+
+                // ---- Confidence badge ----
+                const badge     = document.getElementById('confidence_badge');
+                const [cls, lbl]= BADGE_STYLE[data.confidence] || BADGE_STYLE.low;
+                badge.className = 'badge ' + cls;
+                badge.textContent = lbl;
+
+                // ---- Product link ----
+                const productRow  = document.getElementById('product_row');
+                const productLink = document.getElementById('product_link');
+                if (data.product_name && data.product_url) {
+                    productLink.href        = data.product_url;
+                    productLink.textContent = data.product_name;
+                    productRow.style.display = 'block';
+                }
+
+                // ---- Extra info panel ----
+                const extraParts = [];
+                if (data.item_number)       extraParts.push(`<b>Item #:</b> ${data.item_number}`);
+                if (data.material_full)     extraParts.push(`<b>Composition:</b> ${data.material_full}`);
+                if (data.country_of_origin) extraParts.push(`<b>Made in:</b> ${data.country_of_origin}`);
+                if (data.rn_number)         extraParts.push(`<b>RN:</b> ${data.rn_number}${data.rn_company ? ' — ' + data.rn_company : ''}`);
+                if (data.care_instructions) extraParts.push(`<b>Care:</b> ${data.care_instructions}`);
+                document.getElementById('extra_info').innerHTML = extraParts.join('<br>');
+
+                results.style.display = 'block';
+            }
+        } catch (err) {
+            errDiv.textContent   = '⚠ Something went wrong. Try again.';
+            errDiv.style.display = 'block';
+        }
+
+        // UI: restore button
+        loading.style.display = 'none';
+        btn.disabled          = false;
+        btn.textContent       = '✦ Scan Label';
     }
 </script>
 {% endblock %}

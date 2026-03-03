@@ -66,6 +66,17 @@
             </datalist>
         </div>
 
+        <!-- BRAND FILTER -->
+        <div class="col">
+            <input type="text" name="brand" class="form-control" placeholder="Filter by brand..."
+                value="{{ brand_filter or '' }}" list="brand-options">
+            <datalist id="brand-options">
+                {% for b in user_brands %}
+                    <option value="{{ b }}">
+                {% endfor %}
+            </datalist>
+        </div>
+
         <!-- SEASON FILTER - multi select dropdown -->
         <div class="col">
             <select name="season" class="form-select" multiple size="4">
