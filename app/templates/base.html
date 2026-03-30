@@ -1,37 +1,313 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Wardrobe</title>
+    <title>WARDROBE</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        :root {
+            --black: #0a0a0a;
+            --white: #f8f6f1;
+            --accent: #e8143c;
+            --grey: #888;
+            --light-grey: #e8e5df;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--white);
+            color: var(--black);
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 300;
+            min-height: 100vh;
+        }
+
+        .site-nav {
+            background: var(--black);
+            padding: 0 2rem;
+            display: flex;
+            align-items: stretch;
+            justify-content: space-between;
+            height: 60px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .nav-brand {
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            font-size: 1.3rem;
+            letter-spacing: 0.25em;
+            color: var(--white) !important;
+            text-decoration: none;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-brand span {
+            color: var(--accent);
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--grey);
+            text-decoration: none;
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-weight: 500;
+            transition: color 0.2s;
+            position: relative;
+            padding-bottom: 2px;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--accent);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--white);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-links .nav-cta {
+            background: var(--accent);
+            color: var(--white);
+            padding: 0.4rem 1.1rem;
+            border-radius: 2px;
+            font-weight: 500;
+        }
+
+        .nav-links .nav-cta:hover {
+            background: #c4102f;
+            color: var(--white);
+        }
+
+        .nav-links .nav-cta::after {
+            display: none;
+        }
+
+        .flash-zone {
+            padding: 0.75rem 2rem;
+            background: var(--black);
+            color: var(--white);
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            text-align: center;
+            border-bottom: 1px solid #222;
+        }
+
+        .main-content {
+            padding: 2.5rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-title-band {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--light-grey);
+        }
+
+        .page-title-band h1 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 900;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            letter-spacing: -0.02em;
+            line-height: 1;
+        }
+
+        .page-title-band h1 em {
+            font-style: italic;
+            color: var(--accent);
+        }
+
+        .btn-dark-solid {
+            background: var(--black);
+            color: var(--white);
+            border: none;
+            padding: 0.55rem 1.4rem;
+            font-size: 0.72rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: background 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-dark-solid:hover {
+            background: #333;
+            color: var(--white);
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: var(--white);
+            border: none;
+            padding: 0.55rem 1.4rem;
+            font-size: 0.72rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: background 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-accent:hover {
+            background: #c4102f;
+            color: var(--white);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--black);
+            border: 1px solid var(--light-grey);
+            padding: 0.5rem 1.2rem;
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--black);
+            color: var(--black);
+        }
+
+        .form-select,
+        .form-control {
+            border: 1px solid var(--light-grey);
+            border-radius: 2px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.82rem;
+            padding: 0.55rem 0.85rem;
+            background: #fff;
+            color: var(--black);
+            transition: border-color 0.2s;
+        }
+
+        .form-select:focus,
+        .form-control:focus {
+            border-color: var(--black);
+            box-shadow: none;
+            outline: none;
+        }
+
+        .modal-content {
+            border-radius: 4px;
+            border: none;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: var(--black);
+            color: var(--white);
+            border: none;
+            padding: 1rem 1.25rem;
+        }
+
+        .modal-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1rem;
+        }
+
+        .btn-close {
+            filter: invert(1);
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-up {
+            animation: fadeUp 0.5s ease forwards;
+        }
+    </style>
 </head>
+
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container">
-        <a class="navbar-brand" href="{{ url_for('wardrobe.dashboard') }}">Digital Wardrobe</a>
-        <div class="navbar-nav ms-auto">
+
+    <nav class="site-nav">
+        <a class="nav-brand" href="{{ url_for('wardrobe.dashboard') }}">W<span>.</span>DROBE</a>
+        <div class="nav-links">
             {% if current_user.is_authenticated %}
-                <a class="nav-link" href="{{ url_for('wardrobe.add_item') }}">Add Item</a>
-                <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+            <a href="{{ url_for('wardrobe.add_item') }}" class="nav-cta">+ Add Item</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
             {% else %}
-                <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
-                <a class="nav-link" href="{{ url_for('auth.register') }}">Register</a>
+            <a href="{{ url_for('auth.login') }}">Login</a>
+            <a href="{{ url_for('auth.register') }}" class="nav-cta">Register</a>
             {% endif %}
         </div>
-    </div>
-</nav>
-<div class="container mt-4">
+    </nav>
+
     {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-info">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
+    {% if messages %}
+    {% for message in messages %}
+    <div class="flash-zone">{{ message }}</div>
+    {% endfor %}
+    {% endif %}
     {% endwith %}
-    {% block content %}{% endblock %}
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <div class="main-content fade-up">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

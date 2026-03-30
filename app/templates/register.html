@@ -1,24 +1,122 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-5">
-        <h2 class="mb-4">Register</h2>
+
+<div class="auth-layout">
+    <div class="auth-card">
+
+        <div class="auth-header">
+            <p class="auth-eyebrow">Create account</p>
+            <h1 class="auth-title">Join <em>Us</em></h1>
+        </div>
+
         <form method="POST">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">            <div class="mb-3">
-                <label>Username</label>
-                <input type="text" name="username" class="form-control" required>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="field-group">
+                <label class="field-label">Username</label>
+                <input type="text" name="username" class="form-control" required placeholder="your_username">
             </div>
-            <div class="mb-3">
-                <label>Email</label>
-                <input type="email" name="email" class="form-control" required>
+
+            <div class="field-group">
+                <label class="field-label">Email</label>
+                <input type="email" name="email" class="form-control" required placeholder="you@email.com">
             </div>
-            <div class="mb-3">
-                <label>Password</label>
-                <input type="password" name="password" class="form-control" required>
+
+            <div class="field-group">
+                <label class="field-label">Password</label>
+                <input type="password" name="password" class="form-control" required placeholder="••••••••">
             </div>
-            <button type="submit" class="btn btn-dark w-100">Register</button>
+
+            <button type="submit" class="btn-dark-solid w-100 mt-2">Create Account</button>
         </form>
-        <p class="mt-3">Already have an account? <a href="{{ url_for('auth.login') }}">Login</a></p>
+
+        <p class="auth-footer">Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
     </div>
 </div>
+
+<style>
+    .auth-layout {
+        min-height: calc(100vh - 60px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 1rem;
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 420px;
+        background: #fff;
+        border: 1px solid var(--light-grey);
+        border-top: 3px solid var(--accent);
+        border-radius: 3px;
+        padding: 2.5rem;
+    }
+
+    .auth-header {
+        margin-bottom: 2rem;
+    }
+
+    .auth-eyebrow {
+        font-size: 0.68rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--grey);
+        margin-bottom: 0.4rem;
+    }
+
+    .auth-title {
+        font-family: 'Playfair Display', serif;
+        font-weight: 900;
+        font-size: 2.8rem;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        margin: 0;
+    }
+
+    .auth-title em {
+        font-style: italic;
+        color: var(--accent);
+    }
+
+    .field-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .field-label {
+        display: block;
+        font-size: 0.68rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--grey);
+        margin-bottom: 0.4rem;
+        font-weight: 500;
+    }
+
+    .auth-footer {
+        margin-top: 1.5rem;
+        font-size: 0.82rem;
+        color: var(--grey);
+        text-align: center;
+    }
+
+    .auth-footer a {
+        color: var(--black);
+        font-weight: 500;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    .auth-footer a:hover {
+        color: var(--accent);
+    }
+
+    .btn-dark-solid.w-100 {
+        width: 100%;
+        text-align: center;
+        padding: 0.8rem;
+        font-size: 0.78rem;
+    }
+</style>
+
 {% endblock %}

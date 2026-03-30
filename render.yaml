@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: digital-wardrobe
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn run:app
+    envVars:
+      - key: SECRET_KEY
+        sync: false
+      - key: CLOUDINARY_URL
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false

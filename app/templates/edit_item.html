@@ -1,78 +1,184 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <h2 class="mb-4">Edit Item</h2>
+
+<div class="page-title-band">
+    <h1>Edit <em>Item</em></h1>
+</div>
+
+<div class="add-layout">
+    <div class="add-card">
         <form method="POST">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div class="mb-3">
-                <label>Type</label>
-                <select name="type" class="form-control" required>
-                    <option value="">Select type</option>
-                    {% for option in ['Shirt', 'Pants', 'Socks', 'Hat', 'Shoes', 'Jacket', 'Dress', 'Other'] %}
-                    <option {% if item.type == option %}selected{% endif %}>{{ option }}</option>
-                    {% endfor %}
-                </select>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="form-section">
+                <div class="section-label">Details</div>
+
+                <div class="field-group">
+                    <label class="field-label">Type</label>
+                    <select name="type" class="form-select" required>
+                        <option value="">Select type</option>
+                        {% for option in ['Shirt', 'Pants', 'Socks', 'Hat', 'Shoes', 'Jacket', 'Dress', 'Other'] %}
+                        <option {% if item.type==option %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">Color</label>
+                        <input type="text" name="color" class="form-control" value="{{ item.color }}" required
+                            placeholder="e.g. Black">
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label">Size</label>
+                        <select name="size" class="form-select" required>
+                            {% for option in ['XS', 'S', 'M', 'L', 'XL', 'XXL'] %}
+                            <option {% if item.size==option %}selected{% endif %}>{{ option }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Material</label>
+                    {% set preset_materials = ['Cotton', 'Wool', 'Polyester', 'Leather', 'Denim', 'Silk', 'Linen',
+                    'Nylon', 'Cashmere'] %}
+                    <select name="material" id="material_select" class="form-select" required
+                        onchange="handleMaterialChange(this)">
+                        <option value="">Select material</option>
+                        {% for option in preset_materials %}
+                        <option {% if item.material==option %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                        <option value="Other" {% if item.material not in preset_materials %}selected{% endif %}>Other
+                        </option>
+                    </select>
+                    <input type="text" name="material_custom" id="material_custom" class="form-control mt-2"
+                        placeholder="Enter material"
+                        value="{{ item.material if item.material not in preset_materials else '' }}"
+                        style="display: {{ 'block' if item.material not in preset_materials else 'none' }};" {% if
+                        item.material not in preset_materials %}required{% endif %}>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Brand</label>
+                    <input type="text" name="brand" class="form-control" value="{{ item.brand }}" required
+                        placeholder="e.g. Nike, Zara...">
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Season</label>
+                    <select name="season" class="form-select" required>
+                        {% for option in ['Spring', 'Summer', 'Fall', 'Winter'] %}
+                        <option {% if item.season==option %}selected{% endif %}>{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="fav-check">
+                    <input type="checkbox" name="favorite" class="fav-checkbox" id="favorite" {% if item.favorite
+                        %}checked{% endif %}>
+                    <label for="favorite">★ Mark as Favorite</label>
+                </div>
             </div>
-            <div class="mb-3">
-                <label>Color</label>
-                <input type="text" name="color" class="form-control" value="{{ item.color }}" required>
-            </div>
-            <div class="mb-3">
-                <label>Size</label>
-                <select name="size" class="form-control" required>
-                    {% for option in ['XS', 'S', 'M', 'L', 'XL', 'XXL'] %}
-                    <option {% if item.size == option %}selected{% endif %}>{{ option }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="mb-3">
-                <label>Material</label>
-                {% set preset_materials = ['Cotton', 'Wool', 'Polyester', 'Leather', 'Denim', 'Silk', 'Linen', 'Nylon', 'Cashmere'] %}
-                <select name="material" id="material_select" class="form-control" required onchange="handleMaterialChange(this)">
-                    <option value="">Select material</option>
-                    {% for option in preset_materials %}
-                    <option {% if item.material == option %}selected{% endif %}>{{ option }}</option>
-                    {% endfor %}
-                    <option value="Other" {% if item.material not in preset_materials %}selected{% endif %}>Other</option>
-                </select>
-                <input type="text" name="material_custom" id="material_custom" class="form-control mt-2"
-                    placeholder="Enter material"
-                    value="{{ item.material if item.material not in preset_materials else '' }}"
-                    style="display: {{ 'block' if item.material not in preset_materials else 'none' }};"
-                    {% if item.material not in preset_materials %}required{% endif %}>
-            </div>
-            <div class="mb-3">
-                <label>Brand</label>
-                <input type="text" name="brand" class="form-control" value="{{ item.brand }}" required>
-            </div>
-            <div class="mb-3">
-                <label>Season</label>
-                <select name="season" class="form-control" required>
-                    {% for option in ['Spring', 'Summer', 'Fall', 'Winter'] %}
-                    <option {% if item.season == option %}selected{% endif %}>{{ option }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="mb-3 form-check">
-                <input type="checkbox" name="favorite" class="form-check-input" id="favorite" {% if item.favorite %}checked{% endif %}>
-                <label class="form-check-label" for="favorite">Mark as Favorite</label>
-            </div>
-            <button type="submit" class="btn btn-dark w-100">Save Changes</button>
+
+            <button type="submit" class="btn-accent w-100">Save Changes</button>
         </form>
     </div>
 </div>
 
-<script>
-function handleMaterialChange(select) {
-    const customInput = document.getElementById('material_custom');
-    if (select.value === 'Other') {
-        customInput.style.display = 'block';
-        customInput.required = true;
-    } else {
-        customInput.style.display = 'none';
-        customInput.required = false;
+<style>
+    .add-layout {
+        display: flex;
+        justify-content: center;
+        padding-bottom: 3rem;
     }
-}
+
+    .add-card {
+        width: 100%;
+        max-width: 600px;
+        background: #fff;
+        border: 1px solid var(--light-grey);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .form-section {
+        padding: 1.75rem 2rem;
+        border-bottom: 1px solid var(--light-grey);
+    }
+
+    .section-label {
+        font-size: 0.65rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--grey);
+        font-weight: 500;
+        margin-bottom: 1.25rem;
+    }
+
+    .field-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .field-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .field-label {
+        display: block;
+        font-size: 0.68rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--grey);
+        margin-bottom: 0.4rem;
+        font-weight: 500;
+    }
+
+    .fav-check {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        cursor: pointer;
+    }
+
+    .fav-checkbox {
+        accent-color: var(--accent);
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+    .fav-check label {
+        font-size: 0.82rem;
+        cursor: pointer;
+        letter-spacing: 0.05em;
+    }
+
+    .btn-accent.w-100 {
+        display: block;
+        width: calc(100% - 4rem);
+        margin: 1.75rem 2rem;
+        text-align: center;
+        padding: 0.9rem;
+        font-size: 0.78rem;
+    }
+</style>
+
+<script>
+    function handleMaterialChange(select) {
+        const customInput = document.getElementById('material_custom');
+        if (select.value === 'Other') {
+            customInput.style.display = 'block';
+            customInput.required = true;
+        } else {
+            customInput.style.display = 'none';
+            customInput.required = false;
+        }
+    }
 </script>
+
 {% endblock %}

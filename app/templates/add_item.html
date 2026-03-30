@@ -1,209 +1,422 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <h2 class="mb-4">Add Item</h2>
 
-        <!-- ============================================================
-     ADD ITEM FORM
-     enctype="multipart/form-data" is required for file uploads
-     ============================================================ -->
+<div class="page-title-band">
+    <h1>Add <em>Item</em></h1>
+</div>
+
+<div class="add-layout">
+    <div class="add-card">
         <form method="POST" enctype="multipart/form-data">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-            <!-- TYPE -->
-            <div class="mb-3">
-                <label>Type</label>
-                <select name="type" id="type_select" class="form-control" required
-                    onchange="handleOtherChange('type_select','type_custom')">
-                    <option value="">Select type</option>
-                    <option>Shirt</option>
-                    <option>Pants</option>
-                    <option>Socks</option>
-                    <option>Hat</option>
-                    <option>Shoes</option>
-                    <option>Jacket</option>
-                    <option>Dress</option>
-                    <option value="Other">Other</option>
-                </select>
-                <input type="text" name="type_custom" id="type_custom" class="form-control mt-2"
-                    placeholder="Enter type" style="display:none;">
-            </div>
+            <div class="form-section">
+                <div class="section-label">Details</div>
 
-            <!-- COLOR -->
-            <div class="mb-3">
-                <label>Color</label>
-                <select name="color" id="color_select" class="form-control" required
-                    onchange="handleOtherChange('color_select','color_custom')">
-                    <option value="">Select color</option>
-                    <option>Black</option>
-                    <option>White</option>
-                    <option>Blue</option>
-                    <option>Red</option>
-                    <option>Green</option>
-                    <option>Grey</option>
-                    <option>Brown</option>
-                    <option>Beige</option>
-                    <option>Navy</option>
-                    <option>Pink</option>
-                    <option value="Other">Other</option>
-                </select>
-                <input type="text" name="color_custom" id="color_custom" class="form-control mt-2"
-                    placeholder="Enter color" style="display:none;">
-            </div>
-
-            <!-- SIZE -->
-            <div class="mb-3">
-                <label>Size</label>
-                <select name="size" class="form-control" required>
-                    <option value="">Select size</option>
-                    <option>XS</option>
-                    <option>S</option>
-                    <option>M</option>
-                    <option>L</option>
-                    <option>XL</option>
-                    <option>XXL</option>
-                </select>
-            </div>
-
-            <!-- MATERIAL -->
-            <div class="mb-3">
-                <label>Material</label>
-                <select name="material" id="material_select" class="form-control" required
-                    onchange="handleOtherChange('material_select','material_custom')">
-                    <option value="">Select material</option>
-                    <option>Cotton</option>
-                    <option>Wool</option>
-                    <option>Polyester</option>
-                    <option>Leather</option>
-                    <option>Denim</option>
-                    <option>Silk</option>
-                    <option>Linen</option>
-                    <option>Nylon</option>
-                    <option>Cashmere</option>
-                    <option value="Other">Other</option>
-                </select>
-                <input type="text" name="material_custom" id="material_custom" class="form-control mt-2"
-                    placeholder="Enter material" style="display:none;">
-            </div>
-
-            <!-- BRAND -->
-            <div class="mb-3">
-                <label>Brand</label>
-                <input type="text" name="brand" class="form-control" required>
-            </div>
-
-            <!-- SEASON -->
-            <div class="mb-3">
-                <label>Season <small class="text-muted">(hold Cmd/Ctrl to select multiple)</small></label>
-                <select name="season" id="season_select" class="form-control" multiple
-                    onchange="handleOtherChange('season_select','season_custom')">
-                    <option>Spring</option>
-                    <option>Summer</option>
-                    <option>Fall</option>
-                    <option>Winter</option>
-                    <option value="Other">Other</option>
-                </select>
-                <input type="text" name="season_custom" id="season_custom" class="form-control mt-2"
-                    placeholder="Enter season" style="display:none;">
-            </div>
-
-            <!-- FAVORITE -->
-            <div class="mb-3 form-check">
-                <input type="checkbox" name="favorite" class="form-check-input" id="favorite">
-                <label class="form-check-label" for="favorite">Mark as Favorite</label>
-            </div>
-
-            <!-- ============================================================
-         PHOTO UPLOAD SECTION (optional)
-         front_image - full front view of the clothing item
-         tag_image   - close-up of the label/tag for AI reading later
-         ============================================================ -->
-            <hr>
-            <h5 class="mb-3">Photos <small class="text-muted">(optional)</small></h5>
-
-            <!-- FRONT PHOTO -->
-            <div class="mb-3">
-                <label>Front Photo</label>
-                <input type="file" name="front_image" id="front_image" class="form-control" accept="image/*"
-                    onchange="validateFileSize(this)">
-                <small class="text-muted">Full front view of the clothing item (max 10MB)</small>
-                <div id="front_image_error" class="text-danger small" style="display:none;">File too large. Please
-                    upload an image under 10MB.</div>
-            </div>
-
-            <!-- TAG PHOTO -->
-            <div class="mb-3">
-                <label>Tag Photo</label>
-                <input type="file" name="tag_image" id="tag_image" class="form-control" accept="image/*"
-                    onchange="validateFileSize(this); toggleScanButton()">
-                <small class="text-muted">Make sure the tag text is in focus (max 10MB)</small>
-                <div id="tag_image_error" class="text-danger small" style="display:none;">File too large. Please upload
-                    an image under 10MB.</div>
-            </div>
-
-            <!-- ============================================================
-                 SCAN LABEL BUTTON + RESULTS PANEL
-                 Shown only after user selects a tag photo.
-                 Calls /analyze-label → Claude Vision + DuckDuckGo search
-                 ============================================================ -->
-            <div id="scan_btn_wrapper" style="display:none;" class="mb-4">
-
-                <!-- Button -->
-                <button type="button" class="btn btn-outline-dark w-100" id="scan_btn" onclick="scanLabel()">
-                    ✦ Scan Label
-                </button>
-
-                <!-- Spinner + status message (shown while loading) -->
-                <div id="scan_loading" class="d-flex align-items-center gap-2 mt-2" style="display:none !important;">
-                    <div class="spinner-border spinner-border-sm" role="status">
-                        <span class="visually-hidden">Loading…</span>
-                    </div>
-                    <span class="text-muted small">Reading label with AI…</span>
+                <div class="field-group">
+                    <label class="field-label">Type</label>
+                    <select name="type" id="type_select" class="form-select" required
+                        onchange="handleOtherChange('type_select','type_custom')">
+                        <option value="">Select type</option>
+                        <option>Shirt</option>
+                        <option>Pants</option>
+                        <option>Socks</option>
+                        <option>Hat</option>
+                        <option>Shoes</option>
+                        <option>Jacket</option>
+                        <option>Dress</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" name="type_custom" id="type_custom" class="form-control mt-2"
+                        placeholder="Enter type" style="display:none;">
                 </div>
 
-                <!-- Error message -->
-                <div id="scan_error" class="text-danger small mt-2" style="display:none;"></div>
+                <div class="field-row">
+                    <div class="field-group">
+                        <label class="field-label">Color</label>
+                        <select name="color" id="color_select" class="form-select" required
+                            onchange="handleOtherChange('color_select','color_custom')">
+                            <option value="">Select color</option>
+                            <option>Black</option>
+                            <option>White</option>
+                            <option>Blue</option>
+                            <option>Red</option>
+                            <option>Green</option>
+                            <option>Grey</option>
+                            <option>Brown</option>
+                            <option>Beige</option>
+                            <option>Navy</option>
+                            <option>Pink</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <input type="text" name="color_custom" id="color_custom" class="form-control mt-2"
+                            placeholder="Enter color" style="display:none;">
+                    </div>
 
-                <!-- Results panel (shown after successful scan) -->
-                <div id="scan_results" class="card border mt-3" style="display:none;">
-                    <div class="card-body pb-2">
+                    <div class="field-group">
+                        <label class="field-label">Size</label>
+                        <select name="size" class="form-select" required>
+                            <option value="">Select size</option>
+                            <option>XS</option>
+                            <option>S</option>
+                            <option>M</option>
+                            <option>L</option>
+                            <option>XL</option>
+                            <option>XXL</option>
+                        </select>
+                    </div>
+                </div>
 
-                        <!-- Header row: title + confidence badge -->
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="fw-semibold small">Label Analysis</span>
+                <div class="field-group">
+                    <label class="field-label">Material</label>
+                    <select name="material" id="material_select" class="form-select" required
+                        onchange="handleOtherChange('material_select','material_custom')">
+                        <option value="">Select material</option>
+                        <option>Cotton</option>
+                        <option>Wool</option>
+                        <option>Polyester</option>
+                        <option>Leather</option>
+                        <option>Denim</option>
+                        <option>Silk</option>
+                        <option>Linen</option>
+                        <option>Nylon</option>
+                        <option>Cashmere</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" name="material_custom" id="material_custom" class="form-control mt-2"
+                        placeholder="Enter material" style="display:none;">
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Brand</label>
+                    <input type="text" name="brand" class="form-control" required placeholder="e.g. Nike, Zara...">
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Season <span class="field-hint">Hold Ctrl/Cmd for multiple</span></label>
+                    <select name="season" id="season_select" class="form-select" multiple
+                        onchange="handleOtherChange('season_select','season_custom')">
+                        <option>Spring</option>
+                        <option>Summer</option>
+                        <option>Fall</option>
+                        <option>Winter</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" name="season_custom" id="season_custom" class="form-control mt-2"
+                        placeholder="Enter season" style="display:none;">
+                </div>
+
+                <div class="fav-check">
+                    <input type="checkbox" name="favorite" class="fav-checkbox" id="favorite">
+                    <label for="favorite">★ Mark as Favorite</label>
+                </div>
+            </div>
+
+            <!-- PHOTOS SECTION -->
+            <div class="form-section">
+                <div class="section-label">Photos <span class="field-hint">Optional</span></div>
+
+                <div class="upload-grid">
+                    <div class="upload-zone" id="front-zone" onclick="document.getElementById('front_image').click()">
+                        <div class="upload-icon">↑</div>
+                        <div class="upload-text">Front Photo</div>
+                        <div class="upload-hint">Full view · max 10MB</div>
+                        <input type="file" name="front_image" id="front_image" accept="image/*" style="display:none"
+                            onchange="validateFileSize(this); previewPhoto(this, 'front-zone')">
+                        <div id="front_image_error" class="upload-error" style="display:none;">File too large (max 10MB)
+                        </div>
+                    </div>
+
+                    <div class="upload-zone" id="tag-zone" onclick="document.getElementById('tag_image').click()">
+                        <div class="upload-icon">↑</div>
+                        <div class="upload-text">Tag Photo</div>
+                        <div class="upload-hint">Label close-up · max 10MB</div>
+                        <input type="file" name="tag_image" id="tag_image" accept="image/*" style="display:none"
+                            onchange="validateFileSize(this); toggleScanButton(); previewPhoto(this, 'tag-zone')">
+                        <div id="tag_image_error" class="upload-error" style="display:none;">File too large (max 10MB)
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SCAN LABEL -->
+                <div id="scan_btn_wrapper" style="display:none;" class="scan-wrapper">
+                    <button type="button" class="btn-scan" id="scan_btn" onclick="scanLabel()">
+                        ✦ Scan Label with AI
+                    </button>
+                    <div id="scan_loading" class="scan-loading" style="display:none !important;">
+                        <div class="spinner-border spinner-border-sm" role="status"></div>
+                        <span>Reading label…</span>
+                    </div>
+                    <div id="scan_error" class="scan-error" style="display:none;"></div>
+
+                    <div id="scan_results" class="scan-results" style="display:none;">
+                        <div class="scan-results-header">
+                            <span>Label Analysis</span>
                             <span id="confidence_badge" class="badge"></span>
                         </div>
-
-                        <!-- Product name + link (if found online) -->
-                        <div id="product_row" style="display:none;" class="mb-2">
-                            <a id="product_link" href="#" target="_blank" rel="noopener"
-                               class="small text-truncate d-block"></a>
+                        <div id="product_row" style="display:none;" class="scan-product">
+                            <a id="product_link" href="#" target="_blank" rel="noopener"></a>
                         </div>
-
-                        <!-- Extra info not in the DB schema: shown for reference only -->
-                        <div id="extra_info" class="small text-muted" style="line-height:1.8;"></div>
-
+                        <div id="extra_info" class="scan-extra"></div>
                     </div>
                 </div>
+            </div>
 
-            </div><!-- /scan_btn_wrapper -->
-
-            <button type="submit" class="btn btn-dark w-100">Add Item</button>
+            <button type="submit" class="btn-accent w-100">Add to Wardrobe</button>
         </form>
     </div>
 </div>
 
-<!-- ============================================================
-     JAVASCRIPT
-     handleOtherChange  — "Other" dropdown toggle (original)
-     validateFileSize   — 5 MB guard (original)
-     toggleScanButton   — show/hide Scan Label button
-     prefillSelect      — fill a select with AI value or fall back to "Other"
-     scanLabel          — main AJAX handler: calls /analyze-label, fills form
-     ============================================================ -->
+<style>
+    .add-layout {
+        display: flex;
+        justify-content: center;
+        padding-bottom: 3rem;
+    }
+
+    .add-card {
+        width: 100%;
+        max-width: 600px;
+        background: #fff;
+        border: 1px solid var(--light-grey);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .form-section {
+        padding: 1.75rem 2rem;
+        border-bottom: 1px solid var(--light-grey);
+    }
+
+    .section-label {
+        font-size: 0.65rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--grey);
+        font-weight: 500;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .field-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .field-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .field-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.68rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--grey);
+        margin-bottom: 0.4rem;
+        font-weight: 500;
+    }
+
+    .field-hint {
+        font-size: 0.62rem;
+        color: #bbb;
+        letter-spacing: 0.05em;
+        text-transform: none;
+        font-weight: 300;
+    }
+
+    .fav-check {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        cursor: pointer;
+    }
+
+    .fav-checkbox {
+        accent-color: var(--accent);
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+    .fav-check label {
+        font-size: 0.82rem;
+        cursor: pointer;
+        letter-spacing: 0.05em;
+    }
+
+    /* UPLOAD ZONES */
+    .upload-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .upload-zone {
+        border: 2px dashed var(--light-grey);
+        border-radius: 3px;
+        padding: 2rem 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: border-color 0.2s, background 0.2s;
+        position: relative;
+        overflow: hidden;
+        background: #fafafa;
+        min-height: 140px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .upload-zone:hover {
+        border-color: var(--black);
+        background: #f5f5f5;
+    }
+
+    .upload-zone.has-preview {
+        border-style: solid;
+        border-color: var(--black);
+        padding: 0;
+    }
+
+    .upload-zone.has-preview .upload-icon,
+    .upload-zone.has-preview .upload-text,
+    .upload-zone.has-preview .upload-hint {
+        display: none;
+    }
+
+    .upload-preview {
+        width: 100%;
+        height: 140px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .upload-icon {
+        font-size: 1.5rem;
+        color: var(--light-grey);
+        margin-bottom: 0.5rem;
+    }
+
+    .upload-text {
+        font-size: 0.75rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--black);
+        margin-bottom: 0.25rem;
+    }
+
+    .upload-hint {
+        font-size: 0.65rem;
+        color: var(--grey);
+        letter-spacing: 0.05em;
+    }
+
+    .upload-error {
+        font-size: 0.7rem;
+        color: var(--accent);
+        margin-top: 0.5rem;
+    }
+
+    /* SCAN LABEL */
+    .scan-wrapper {
+        margin-top: 0.5rem;
+    }
+
+    .btn-scan {
+        width: 100%;
+        background: var(--black);
+        color: var(--white);
+        border: none;
+        padding: 0.75rem;
+        font-size: 0.75rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 500;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: background 0.2s;
+    }
+
+    .btn-scan:hover {
+        background: #333;
+    }
+
+    .scan-loading {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+        font-size: 0.78rem;
+        color: var(--grey);
+    }
+
+    .scan-error {
+        font-size: 0.75rem;
+        color: var(--accent);
+        margin-top: 0.5rem;
+    }
+
+    .scan-results {
+        margin-top: 1rem;
+        border: 1px solid var(--light-grey);
+        border-left: 3px solid var(--accent);
+        border-radius: 2px;
+        padding: 1rem;
+    }
+
+    .scan-results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        font-size: 0.72rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-weight: 500;
+    }
+
+    .scan-product a {
+        font-size: 0.8rem;
+        color: var(--accent);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        display: block;
+        margin-bottom: 0.5rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .scan-extra {
+        font-size: 0.78rem;
+        color: var(--grey);
+        line-height: 1.9;
+    }
+
+    /* SUBMIT */
+    .btn-accent.w-100 {
+        display: block;
+        width: calc(100% - 4rem);
+        margin: 1.75rem 2rem;
+        text-align: center;
+        padding: 0.9rem;
+        font-size: 0.78rem;
+    }
+</style>
+
 <script>
-    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
     function validateFileSize(input) {
         const errorDiv = document.getElementById(input.id + '_error');
@@ -229,133 +442,124 @@
         }
     }
 
-    /* Show/hide the Scan Label button when a tag photo is selected */
+    function previewPhoto(input, zoneId) {
+        const zone = document.getElementById(zoneId);
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                let img = zone.querySelector('.upload-preview');
+                if (!img) {
+                    img = document.createElement('img');
+                    img.className = 'upload-preview';
+                    zone.appendChild(img);
+                }
+                img.src = e.target.result;
+                zone.classList.add('has-preview');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
     function toggleScanButton() {
         const tagInput = document.getElementById('tag_image');
         document.getElementById('scan_btn_wrapper').style.display =
             tagInput.files.length > 0 ? 'block' : 'none';
-        // Hide previous results if user picks a new file
         document.getElementById('scan_results').style.display = 'none';
-        document.getElementById('scan_error').style.display   = 'none';
+        document.getElementById('scan_error').style.display = 'none';
     }
 
-    /*
-     * prefillSelect — try to select an existing option (case-insensitive).
-     * If no match, select "Other" and fill the paired text input.
-     */
     function prefillSelect(selectId, customId, value) {
         if (!value) return;
-        const select  = document.getElementById(selectId);
-        const match   = Array.from(select.options).find(
-            o => o.value.toLowerCase() === value.toLowerCase()
-              || o.text.toLowerCase()  === value.toLowerCase()
+        const select = document.getElementById(selectId);
+        const match = Array.from(select.options).find(
+            o => o.value.toLowerCase() === value.toLowerCase() || o.text.toLowerCase() === value.toLowerCase()
         );
-        if (match) {
-            select.value = match.value;
-        } else {
+        if (match) { select.value = match.value; }
+        else {
             select.value = 'Other';
             document.getElementById(customId).value = value;
         }
         handleOtherChange(selectId, customId);
     }
 
-    /*
-     * prefillSize — match against size select (no "Other" option in that select).
-     * If no match, leave unchanged.
-     */
     function prefillSize(value) {
         if (!value) return;
         const sel = document.querySelector('select[name="size"]');
-        const match = Array.from(sel.options).find(
-            o => o.value.toLowerCase() === value.toLowerCase()
-        );
+        const match = Array.from(sel.options).find(o => o.value.toLowerCase() === value.toLowerCase());
         if (match) sel.value = match.value;
     }
 
-    /* Confidence badge styling */
     const BADGE_STYLE = {
-        high:   ['bg-success', 'High confidence'],
+        high: ['bg-success', 'High confidence'],
         medium: ['bg-warning text-dark', 'Medium confidence'],
-        low:    ['bg-secondary', 'Low confidence — label only'],
+        low: ['bg-secondary', 'Low confidence'],
     };
 
-    /* ============================================================
-       scanLabel — main function
-       1. POST tag photo to /analyze-label
-       2. Fill form fields with form-fillable data
-       3. Show info panel with extra label details
-       ============================================================ */
     async function scanLabel() {
         const tagInput = document.getElementById('tag_image');
         if (!tagInput.files.length) return;
 
-        // UI: loading state
-        const btn     = document.getElementById('scan_btn');
+        const btn = document.getElementById('scan_btn');
         const loading = document.getElementById('scan_loading');
-        const errDiv  = document.getElementById('scan_error');
+        const errDiv = document.getElementById('scan_error');
         const results = document.getElementById('scan_results');
 
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Scanning…';
         loading.style.display = 'flex';
-        errDiv.style.display  = 'none';
+        errDiv.style.display = 'none';
         results.style.display = 'none';
 
-        // Build multipart form with CSRF token
         const formData = new FormData();
-        formData.append('tag_image',   tagInput.files[0]);
-        formData.append('csrf_token',  document.querySelector('input[name="csrf_token"]').value);
+        formData.append('tag_image', tagInput.files[0]);
+        formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
 
         try {
             const resp = await fetch('/analyze-label', { method: 'POST', body: formData });
             const data = await resp.json();
 
             if (data.error) {
-                errDiv.textContent    = '⚠ ' + data.error;
-                errDiv.style.display  = 'block';
+                errDiv.textContent = '⚠ ' + data.error;
+                errDiv.style.display = 'block';
             } else {
-                // ---- Fill form-fillable fields ----
-                if (data.brand)    document.querySelector('input[name="brand"]').value = data.brand;
-                if (data.size)     prefillSize(data.size);
+                if (data.brand) document.querySelector('input[name="brand"]').value = data.brand;
+                if (data.size) prefillSize(data.size);
                 if (data.material) prefillSelect('material_select', 'material_custom', data.material);
-                if (data.color)    prefillSelect('color_select',    'color_custom',    data.color);
-                if (data.category) prefillSelect('type_select',     'type_custom',     data.category);
+                if (data.color) prefillSelect('color_select', 'color_custom', data.color);
+                if (data.category) prefillSelect('type_select', 'type_custom', data.category);
 
-                // ---- Confidence badge ----
-                const badge     = document.getElementById('confidence_badge');
-                const [cls, lbl]= BADGE_STYLE[data.confidence] || BADGE_STYLE.low;
+                const badge = document.getElementById('confidence_badge');
+                const [cls, lbl] = BADGE_STYLE[data.confidence] || BADGE_STYLE.low;
                 badge.className = 'badge ' + cls;
                 badge.textContent = lbl;
 
-                // ---- Product link ----
-                const productRow  = document.getElementById('product_row');
+                const productRow = document.getElementById('product_row');
                 const productLink = document.getElementById('product_link');
                 if (data.product_name && data.product_url) {
-                    productLink.href        = data.product_url;
+                    productLink.href = data.product_url;
                     productLink.textContent = data.product_name;
                     productRow.style.display = 'block';
                 }
 
-                // ---- Extra info panel ----
                 const extraParts = [];
-                if (data.item_number)       extraParts.push(`<b>Item #:</b> ${data.item_number}`);
-                if (data.material_full)     extraParts.push(`<b>Composition:</b> ${data.material_full}`);
+                if (data.item_number) extraParts.push(`<b>Item #:</b> ${data.item_number}`);
+                if (data.material_full) extraParts.push(`<b>Composition:</b> ${data.material_full}`);
                 if (data.country_of_origin) extraParts.push(`<b>Made in:</b> ${data.country_of_origin}`);
-                if (data.rn_number)         extraParts.push(`<b>RN:</b> ${data.rn_number}${data.rn_company ? ' — ' + data.rn_company : ''}`);
+                if (data.rn_number) extraParts.push(`<b>RN:</b> ${data.rn_number}${data.rn_company ? ' — ' + data.rn_company : ''}`);
                 if (data.care_instructions) extraParts.push(`<b>Care:</b> ${data.care_instructions}`);
                 document.getElementById('extra_info').innerHTML = extraParts.join('<br>');
 
                 results.style.display = 'block';
             }
         } catch (err) {
-            errDiv.textContent   = '⚠ Something went wrong. Try again.';
+            errDiv.textContent = '⚠ Something went wrong. Try again.';
             errDiv.style.display = 'block';
         }
 
-        // UI: restore button
         loading.style.display = 'none';
-        btn.disabled          = false;
-        btn.textContent       = '✦ Scan Label';
+        btn.disabled = false;
+        btn.textContent = '✦ Scan Label with AI';
     }
 </script>
+
 {% endblock %}
