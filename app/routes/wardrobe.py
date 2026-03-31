@@ -308,25 +308,14 @@ def scan_tag():
                 }
             ]
         }],
-        output_config={
-            'format': {
-                'type': 'json_schema',
-                'schema': {
-                    'type': 'object',
-                    'properties': {
-                        'brand':    {'type': 'string'},
-                        'size':     {'type': 'string'},
-                        'material': {'type': 'string'},
-                        'color':    {'type': 'string'}
-                    },
-                    'required': ['brand', 'size', 'material', 'color'],
-                    'additionalProperties': False
-                }
-            }
-        }
     )
 
-    data = json.loads(response.content[0].text)
+    text = response.content[0].text.strip()
+    if text.startswith('```'):
+        import re
+        text = re.sub(r'^```[a-z]*\n?', '', text)
+        text = re.sub(r'\n?```$', '', text)
+    data = json.loads(text)
     return jsonify(data)
 
 # ============================================================
