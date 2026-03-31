@@ -24,6 +24,11 @@ from duckduckgo_search import DDGS
 
 CLAUDE_MODEL = 'claude-sonnet-4-6'
 
+PRESET_COLORS = [
+    'Black', 'White', 'Blue', 'Red', 'Green', 'Grey', 'Brown', 'Beige',
+    'Navy', 'Pink', 'Yellow', 'Orange', 'Purple', 'Cream', 'Khaki',
+]
+
 # ---- Size normalizer: maps label text → form dropdown value ----
 SIZE_MAP = {
     'EXTRA SMALL': 'XS', 'X-SMALL': 'XS', 'XS': 'XS',
@@ -113,6 +118,37 @@ def _infer_category(text):
     for cat, keywords in CATEGORY_KEYWORDS.items():
         if any(kw in text for kw in keywords):
             return cat
+    return ''
+
+
+def _extract_color_from_text(text):
+    """Return the first PRESET_COLORS match found in text (case-insensitive), or ''."""
+    text_lower = text.lower()
+    for color in PRESET_COLORS:
+        if color.lower() in text_lower:
+            return color
+    return ''
+
+
+def _extract_size_from_text(text):
+    """
+    Find a size pattern in text. Checked in order:
+      1. Standard labels: XS, S, M, L, XL, XXL, 2XL, 3XL
+      2. "size: X" patterns
+      3. Numeric like 32x30
+      4. US sizing like "US 10"
+    Returns the raw matched string, or ''.
+    """
+    patterns = [
+        r'\b(3XL|2XL|XXL|XL|XS|S|M|L)\b',
+        r'\bsize[:\s]+(\S+)',
+        r'\b(\d{2}[xX]\d{2})\b',
+        r'\bUS\s+(\d+(?:\.\d+)?)\b',
+    ]
+    for pattern in patterns:
+        m = re.search(pattern, text, re.IGNORECASE)
+        if m:
+            return m.group(1) if m.lastindex else m.group(0)
     return ''
 
 
@@ -207,13 +243,15 @@ def _extract_from_label(image_bytes, media_type, api_key):
 def _search_product(brand, item_number=None, material=None):
     """
     Search DuckDuckGo for product info.
-    Returns: { product_name, category, product_url, source }
+    Returns: { product_name, category, product_url, source, color, size }
     """
     result = {
         'product_name': '',
         'category': '',
         'product_url': '',
         'source': 'label_only',
+        'color': '',
+        'size': '',
     }
 
     if brand and item_number:
@@ -233,11 +271,13 @@ def _search_product(brand, item_number=None, material=None):
         result['product_name'] = top.get('title', '')
         result['source']       = 'online_search'
 
-        # Infer category from combined titles + snippets
+        # Infer category, color, size from combined titles + snippets
         combined = ' '.join(
             h.get('title', '') + ' ' + h.get('body', '') for h in hits
         )
         result['category'] = _infer_category(combined)
+        result['color']    = _extract_color_from_text(combined)
+        result['size']     = _extract_size_from_text(combined)
 
     except Exception:
         pass
@@ -327,9 +367,9 @@ def analyze_label(image_bytes, media_type='image/jpeg', api_key=None):
     return {
         # ---- Form-fillable (maps directly to Add Item dropdowns) ----
         'brand':    brand,
-        'size':     _normalize_size(raw.get('size', '')),
+        'size':     _normalize_size(raw.get('size', '')) if raw.get('size', '').strip() else online.get('size', ''),
         'material': _main_material(material_raw),
-        'color':    color_raw,
+        'color':    color_raw if color_raw else online.get('color', ''),
         'category': category,   # → Type dropdown
 
         # ---- Info-only (shown in UI panel, not saved to DB) ----
