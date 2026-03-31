@@ -207,33 +207,12 @@ def _extract_from_label(image_bytes, media_type, api_key):
                 },
             ],
         }],
-        output_config={
-            'format': {
-                'type': 'json_schema',
-                'schema': {
-                    'type': 'object',
-                    'properties': {
-                        'brand':             {'type': 'string'},
-                        'item_number':       {'type': 'string'},
-                        'size':              {'type': 'string'},
-                        'material':          {'type': 'string'},
-                        'color':             {'type': 'string'},
-                        'garment_type':      {'type': 'string'},
-                        'country_of_origin': {'type': 'string'},
-                        'rn_number':         {'type': 'string'},
-                        'care_instructions': {'type': 'string'},
-                    },
-                    'required': [
-                        'brand', 'item_number', 'size', 'material',
-                        'color', 'garment_type',
-                        'country_of_origin', 'rn_number', 'care_instructions',
-                    ],
-                    'additionalProperties': False,
-                },
-            },
-        },
     )
-    return json.loads(response.content[0].text)
+    text = response.content[0].text.strip()
+    if text.startswith('```'):
+        text = re.sub(r'^```[a-z]*\n?', '', text)
+        text = re.sub(r'\n?```$', '', text)
+    return json.loads(text)
 
 
 # ============================================================
